@@ -1,4 +1,4 @@
-<p align="center"><img src="docs/images/logo.svg" alt="specky" width="300"></p>
+<p align="center"><img src="docs/images/logo.svg" alt="requiremento" width="340"></p>
 
 # Specification by Example
 
@@ -13,13 +13,13 @@ You keep two kinds of files in your repository:
 | `terms/terms.json` | The **terms** of your domain: one shared vocabulary, defined once | `terms.html` |
 | `specs/<TICKET>.json` | One **specification per ticket**: stories, business rules, concrete examples, acceptance criteria (Gherkin), test cases, risks, decisions | `specs.html` |
 
-**specky** is the tool around them: a command line, two single-file HTML pages to read and edit the files, and the
+**requiremento** is the tool around them: a command line, two single-file HTML pages to read and edit the files, and the
 checks. It is an npm package without dependencies. The tool and your data are separate: the tool is installed at a
-version you choose, your files stay in your repository, and a small `specky.json` says where. Upgrading the tool never
+version you choose, your files stay in your repository, and a small `requiremento.json` says where. Upgrading the tool never
 touches your data.
 
 The JSON is the source of truth, so it diffs, reviews and merges like code, and people and scripts can edit it.
-The repository of specky has a complete worked example (`examples/library/`: renewing a library loan) that uses every
+The repository of requiremento has a complete worked example (`examples/library/`: renewing a library loan) that uses every
 feature.
 
 ---
@@ -61,7 +61,7 @@ means three things. This toolkit pushes against that with a few simple ideas:
 
 ## What it looks like
 
-`specky serve` shows your JSON files as readable pages. The pages are also the editor.
+`requiremento serve` shows your JSON files as readable pages. The pages are also the editor.
 
 **A specification** with its overview, the table of contents and a status filter for the acceptance criteria:
 
@@ -82,16 +82,16 @@ You need Node 18 or newer, and Chrome or Edge to edit comfortably. Run this in t
 should live, usually the root of your repository:
 
 ```bash
-npm install --save-dev specky@0.1.0   # pin the version you want
-npx specky init                       # creates specky.json and an empty terms file; asks about AGENTS.md / CLAUDE.md
-npx specky new SHOP-42 "Checkout"     # creates an empty spec for a ticket
-npx specky serve                      # shows the pages at http://localhost:8000
+npm install --save-dev requiremento@0.1.0   # pin the version you want
+npx requiremento init                       # creates requiremento.json and an empty terms file; asks about AGENTS.md / CLAUDE.md
+npx requiremento new SHOP-42 "Checkout"     # creates an empty spec for a ticket
+npx requiremento serve                      # shows the pages at http://localhost:8000
 ```
 
 Open `http://localhost:8000`, pick the terms or the spec, and start writing. Every change in the pages adds a
 changelog entry. Commit the JSON files like any other source.
 
-No `package.json` (for example in a Gradle or Maven project)? Use `npx specky@0.1.0 <command>` instead. It needs only
+No `package.json` (for example in a Gradle or Maven project)? Use `npx requiremento@0.1.0 <command>` instead. It needs only
 Node, and the version in the command is the version you get.
 
 The pages load Bootstrap from a CDN, so you need to be online for the styling the first time.
@@ -100,16 +100,16 @@ The pages load Bootstrap from a CDN, so you need to be online for the styling th
 
 | Command | What it does |
 |---|---|
-| `specky init [--agents agents\|claude\|both\|none]` | Creates `specky.json` and an empty terms file. Existing files are kept. It also asks whether to add a short section for AI agents to `AGENTS.md`, `CLAUDE.md` or both (see [Editing](#editing-people-scripts-and-ai-agents)). The flag answers the question up front; without a terminal and without the flag, nothing is added. |
-| `specky new <KEY> ["title"]` | Creates an empty spec file for a ticket, for example `SHOP-42`. |
-| `specky check [spec.json ...]` | Checks the terms file and the given spec files (default: all of them). Exit code 1 on errors, so it works as a CI step. See [Checks](#checks). |
-| `specky serve [--port 8000]` | Starts a local web server that shows the pages on your files. Press Ctrl+C to stop. |
-| `specky guide` | Prints the guide for AI agents: the file formats, the ID rules and the workflow. See [Editing](#editing-people-scripts-and-ai-agents). |
-| `specky schema <specs\|terms>` | Prints the JSON Schema of a spec or the terms file. |
-| `specky --version`, `specky --help` | |
+| `requiremento init [--agents agents\|claude\|both\|none]` | Creates `requiremento.json` and an empty terms file. Existing files are kept. It also asks whether to add a short section for AI agents to `AGENTS.md`, `CLAUDE.md` or both (see [Editing](#editing-people-scripts-and-ai-agents)). The flag answers the question up front; without a terminal and without the flag, nothing is added. |
+| `requiremento new <KEY> ["title"]` | Creates an empty spec file for a ticket, for example `SHOP-42`. |
+| `requiremento check [spec.json ...]` | Checks the terms file and the given spec files (default: all of them). Exit code 1 on errors, so it works as a CI step. See [Checks](#checks). |
+| `requiremento serve [--port 8000]` | Starts a local web server that shows the pages on your files. Press Ctrl+C to stop. |
+| `requiremento guide` | Prints the guide for AI agents: the file formats, the ID rules and the workflow. See [Editing](#editing-people-scripts-and-ai-agents). |
+| `requiremento schema <specs\|terms>` | Prints the JSON Schema of a spec or the terms file. |
+| `requiremento --version`, `requiremento --help` | |
 
-`specky serve` only reads your files. *Save* in the pages writes into the file with the File System Access API (Chrome
-or Edge; see [Browser support](#browser-support)). The pages are in `node_modules/specky/pages/`, so you can also open
+`requiremento serve` only reads your files. *Save* in the pages writes into the file with the File System Access API (Chrome
+or Edge; see [Browser support](#browser-support)). The pages are in `node_modules/requiremento/pages/`, so you can also open
 them straight from disk, click *Open* once and pick the JSON file.
 
 ## Your project
@@ -118,14 +118,14 @@ The tool adds no files to your project except the config. This is all of it:
 
 ```
 your-project/
-  specky.json            { "terms": "terms/terms.json", "specs": "specs" }
+  requiremento.json            { "terms": "terms/terms.json", "specs": "specs" }
   terms/terms.json
   specs/SHOP-42.json
 ```
 
 ### The config file
 
-`specky.json` is looked up in the current folder and then in each parent folder, like `package.json`. Both keys are
+`requiremento.json` is looked up in the current folder and then in each parent folder, like `package.json`. Both keys are
 optional; the values below are the defaults. Paths are relative to the config file.
 
 | Key | Meaning | Default |
@@ -134,7 +134,7 @@ optional; the values below are the defaults. Paths are relative to the config fi
 | `specs` | The folder with the spec files (every `.json` file there that uses the specs schema) | `specs` |
 
 To keep the requirements elsewhere, change the config and move the files, for example
-`{ "terms": "docs/terms.json", "specs": "docs/requirements" }`. Without a `specky.json`, the defaults apply relative to
+`{ "terms": "docs/terms.json", "specs": "docs/requirements" }`. Without a `requiremento.json`, the defaults apply relative to
 the current folder.
 
 ## The terms file
@@ -295,12 +295,12 @@ Permalinks: `specs.html#AC-02a` opens an item, `specs.html#LN-4` a data item, `t
 
 ## Checks
 
-The JSON Schema describes shape. `specky check` covers what a schema can't. Run it in CI, in a pre-commit hook, or after
+The JSON Schema describes shape. `requiremento check` covers what a schema can't. Run it in CI, in a pre-commit hook, or after
 any hand or script edit. The pages run the same checks before they save.
 
 ```bash
-npx specky check                       # the terms file and every spec file named by specky.json
-npx specky check specs/SHOP-42.json    # only the given spec files (the terms file is still used)
+npx requiremento check                       # the terms file and every spec file named by requiremento.json
+npx requiremento check specs/SHOP-42.json    # only the given spec files (the terms file is still used)
 ```
 
 Exit code 1 on errors.
@@ -333,27 +333,27 @@ Exit code 1 on errors.
 The schemas ship with the package. Validate against them with any JSON Schema 2020-12 validator, for example:
 
 ```bash
-npx ajv-cli@5 validate --spec=draft2020 -s node_modules/specky/schemas/specs.schema.json -d specs/SHOP-42.json
-npx ajv-cli@5 validate --spec=draft2020 -s node_modules/specky/schemas/terms.schema.json -d terms/terms.json
+npx ajv-cli@5 validate --spec=draft2020 -s node_modules/requiremento/schemas/specs.schema.json -d specs/SHOP-42.json
+npx ajv-cli@5 validate --spec=draft2020 -s node_modules/requiremento/schemas/terms.schema.json -d terms/terms.json
 ```
 
 ## Editing: people, scripts and AI agents
 
 - **People** use the pages. Every change adds a changelog entry with the author's name (asked once and remembered),
   and repeated unsaved edits of the same item are merged into one entry.
-- **AI agents** edit the JSON directly. `specky init` asks whether to add a short section to `AGENTS.md` (read by
+- **AI agents** edit the JSON directly. `requiremento init` asks whether to add a short section to `AGENTS.md` (read by
   Codex, Cursor, Copilot and others), to `CLAUDE.md` (read by Claude Code), or to both. It never touches a file you
-  decline. The section is about five lines between `<!-- specky:start -->` and `<!-- specky:end -->`, appended to the
-  file if it exists. It tells the agent to run `specky guide` before it touches the files and `specky check` after.
+  decline. The section is about five lines between `<!-- requiremento:start -->` and `<!-- requiremento:end -->`, appended to the
+  file if it exists. It tells the agent to run `requiremento guide` before it touches the files and `requiremento check` after.
   Running `init` again updates only the text between the markers, and you can delete the section any time.
-  The guide is part of the installed version, so it always matches the format. `specky schema specs` and
-  `specky schema terms` print the schemas, so an agent doesn't have to find them in `node_modules`.
-- **Scripts and AI agents** edit the JSON directly, **append a changelog entry themselves**, and run `specky check`.
-  Keep IDs stable and withdraw instead of deleting. If you write specs with `specky/lib/specs-lib.js`, its `serialize(spec)`
+  The guide is part of the installed version, so it always matches the format. `requiremento schema specs` and
+  `requiremento schema terms` print the schemas, so an agent doesn't have to find them in `node_modules`.
+- **Scripts and AI agents** edit the JSON directly, **append a changelog entry themselves**, and run `requiremento check`.
+  Keep IDs stable and withdraw instead of deleting. If you write specs with `requiremento/lib/specs-lib.js`, its `serialize(spec)`
   produces the exact key order and formatting the page uses, so diffs stay minimal:
 
   ```js
-  const { check, serialize } = require('specky/lib/specs-lib.js');
+  const { check, serialize } = require('requiremento/lib/specs-lib.js');
   const { errors, warnings } = check(spec, terms);
   fs.writeFileSync('specs/SHOP-42.json', serialize(spec));
   ```
@@ -363,19 +363,19 @@ npx ajv-cli@5 validate --spec=draft2020 -s node_modules/specky/schemas/terms.sch
 
 ## Rolling it out in a team
 
-1. Install a pinned version and run `specky init` (see [Getting started](#getting-started)).
+1. Install a pinned version and run `requiremento init` (see [Getting started](#getting-started)).
 2. Start with the terms. Writing down five terms and their forbidden synonyms resolves more arguments than a dozen
    documents.
-3. Create a spec per ticket with `specky new`. The file is named after the ticket key (`meta.key`). For a full spec to
-   read, see `examples/library/specs/LIB-101.json` in the specky repository.
-4. Add `npx specky check` to CI.
+3. Create a spec per ticket with `requiremento new`. The file is named after the ticket key (`meta.key`). For a full spec to
+   read, see `examples/library/specs/LIB-101.json` in the requiremento repository.
+4. Add `npx requiremento check` to CI.
 5. Decide on conventions: the area part of the IDs, who may set a spec to `implemented`, and whether the product owner
    approves in `meta.approvedBy` and `meta.approvedOn`.
 
 ## Upgrading
 
-Change the version (`npm install --save-dev specky@<new version>`, or the version in your `npx` command), then run
-`specky check`. Your files are not part of the package, so an upgrade never rewrites them. If a release changes the
+Change the version (`npm install --save-dev requiremento@<new version>`, or the version in your `npx` command), then run
+`requiremento check`. Your files are not part of the package, so an upgrade never rewrites them. If a release changes the
 file format, its release notes say what to change, and the check tells you where.
 
 ## Browser support
@@ -387,7 +387,7 @@ file format, its release notes say what to change, and the check tells you where
 | Remember the opened file | yes (IndexedDB) | partly |
 
 Files opened straight from disk (`file://`) can't be read by the page by itself, because browsers block that. Pick the
-file once, or use `specky serve`.
+file once, or use `requiremento serve`.
 
 ## FAQ
 
@@ -411,4 +411,4 @@ Download it and change the `<link>` and `<script>` tags if you need to work offl
 
 ## Contributing and license
 
-To work on specky itself, see [CONTRIBUTING.md](CONTRIBUTING.md). MIT license, see [LICENSE](LICENSE).
+To work on requiremento itself, see [CONTRIBUTING.md](CONTRIBUTING.md). MIT license, see [LICENSE](LICENSE).

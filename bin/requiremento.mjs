@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Command line of specky: init, new, check, serve.
+// Command line of requiremento: init, new, check, serve.
 import { readFileSync } from 'node:fs';
 import { runGuide, runSchema } from '../lib/agent.mjs';
 import { runCheck } from '../lib/check.mjs';
@@ -7,12 +7,12 @@ import { runInit, runNew } from '../lib/init.mjs';
 import { runServe } from '../lib/serve.mjs';
 
 const { version } = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
-const HELP = `specky ${version}: living requirements as JSON
+const HELP = `requiremento ${version}: living requirements as JSON
 
-Usage: specky <command>
+Usage: requiremento <command>
 
   init [--agents agents|claude|both|none]
-                        create specky.json and an empty terms file here; asks whether to add
+                        create requiremento.json and an empty terms file here; asks whether to add
                         a short section for AI agents to AGENTS.md and/or CLAUDE.md
   guide                 print the guide for AI agents (formats and rules)
   schema <specs|terms>  print a JSON Schema
@@ -21,7 +21,7 @@ Usage: specky <command>
   serve [--port 8000]   show and edit them in the browser
   --version, --help
 
-specky.json (found in this or a parent folder) says where the data lives:
+requiremento.json (found in this or a parent folder) says where the data lives:
   { "terms": "terms/terms.json", "specs": "specs" }
 `;
 
@@ -41,6 +41,6 @@ try {
   }
   if (code !== null) process.exitCode = code;
 } catch (e) {
-  console.error(`specky: ${e.message}`);
+  console.error(`requiremento: ${e.message}`);
   process.exitCode = 1;
 }

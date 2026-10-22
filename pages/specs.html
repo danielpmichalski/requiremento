@@ -174,7 +174,7 @@
       so pick it once. Then load the terms file too, so the page can show and check the terms.</p>
     <button id="btnReconnect" class="btn btn-primary d-none mb-2">Reconnect <span id="reconnectName"></span></button>
     <div><button id="btnOpenEmpty" class="btn btn-outline-primary">Open a spec file</button></div>
-    <p class="small text-body-secondary mt-3">Started with <code>specky serve</code>, open <code>specs.html?spec=LIB-101.json</code>.</p>
+    <p class="small text-body-secondary mt-3">Started with <code>requiremento serve</code>, open <code>specs.html?spec=LIB-101.json</code>.</p>
     <p id="fsaHint" class="small text-body-secondary d-none">Your browser can't save files directly. You can read and edit
       here, then download the result and replace the file. Chrome and Edge save directly.</p>
   </div>
@@ -1195,7 +1195,7 @@ async function pickTerms() {
     await idbSet(termsKey(), h);
   } catch (e) { if (e.name !== 'AbortError') alert('Could not load terms.json: ' + e.message); }
 }
-/** Loads terms.json from the same server as the spec (specky serve) or from the remembered handle; quietly does nothing otherwise. */
+/** Loads terms.json from the same server as the spec (requiremento serve) or from the remembered handle; quietly does nothing otherwise. */
 async function restoreTerms() {
   if (state.specUrl) {
     try {

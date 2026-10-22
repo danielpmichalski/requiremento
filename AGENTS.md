@@ -1,13 +1,13 @@
 # Specification by Example
 
-Dependency-free npm package (`specky`) for living requirements as JSON: a shared **terms** file (ubiquitous language)
+Dependency-free npm package (`requiremento`) for living requirements as JSON: a shared **terms** file (ubiquitous language)
 and one **specification** file per ticket (stories, rules, examples, acceptance criteria, test cases). A small CLI, two
 single-file HTML viewers/editors and the checkers. No build step, no dependencies.
 
 **Tool and data are separate.** The package (`bin/`, `lib/`, `pages/`, `schemas/`) never contains project data. Data
-lives in the user's repository, and `specky.json` says where. `examples/library/` is such a project.
+lives in the user's repository, and `requiremento.json` says where. `examples/library/` is such a project.
 
-See [README.md](README.md) for the user-facing description (written for people who use specky) and
+See [README.md](README.md) for the user-facing description (written for people who use requiremento) and
 [CONTRIBUTING.md](CONTRIBUTING.md) for the developer instructions. This file holds the rules for agents working in this
 repository.
 
@@ -15,11 +15,11 @@ repository.
 
 ```
 package.json   name, version, bin, files (bin, lib, pages, schemas)
-bin/           specky.mjs (CLI: init, new, check, serve, guide, schema)
+bin/           requiremento.mjs (CLI: init, new, check, serve, guide, schema)
 lib/           config.mjs, check.mjs, check-terms.mjs, serve.mjs, init.mjs, agent.mjs, specs-lib.js, guide.md
 pages/         terms.html, specs.html (viewers/editors)
 schemas/       terms.schema.json, specs.schema.json
-examples/library/   specky.json, terms/terms.json, specs/LIB-101.json (example project, not part of the package)
+examples/library/   requiremento.json, terms/terms.json, specs/LIB-101.json (example project, not part of the package)
 ```
 
 - `lib/specs-lib.js` is shared by `pages/specs.html` (classic script, also from `file://`) and `lib/check.mjs`
@@ -30,19 +30,19 @@ examples/library/   specky.json, terms/terms.json, specs/LIB-101.json (example p
 - `schemas/specs.schema.json` and `schemas/terms.schema.json` describe the shape. The checkers cover what a schema can't.
   A change to a field touches the schema, `ORDER`/`TEXT_FIELDS`/`REF_FIELDS` in `specs-lib.js`, the form definitions in
   `pages/specs.html`, and the README, together.
-- `lib/guide.md` is what `specky guide` prints for agents in client projects. It restates the format and rules, so a
+- `lib/guide.md` is what `requiremento guide` prints for agents in client projects. It restates the format and rules, so a
   change to a field or a rule touches it too. Keep it short and accurate.
-- Tool code finds data only through `lib/config.mjs` (`specky.json`). Never hard-code a data path in `lib/` or `bin/`.
-- `specky serve` maps the pages and the data onto one flat URL space (`/specs.html`, `/terms.json`, `/<SPEC>.json`), so
+- Tool code finds data only through `lib/config.mjs` (`requiremento.json`). Never hard-code a data path in `lib/` or `bin/`.
+- `requiremento serve` maps the pages and the data onto one flat URL space (`/specs.html`, `/terms.json`, `/<SPEC>.json`), so
   the pages fetch `terms.json` and `?spec=NAME.json` relative to themselves. Keep that in step with `lib/serve.mjs`.
 
 ## Commands
 
 ```bash
 # Run from examples/library (or npm run check:example from the root)
-node ../../bin/specky.mjs check                       # terms file and every spec
-node ../../bin/specky.mjs check specs/LIB-101.json    # one spec file
-node ../../bin/specky.mjs serve                       # http://localhost:8000/specs.html?spec=LIB-101.json
+node ../../bin/requiremento.mjs check                       # terms file and every spec
+node ../../bin/requiremento.mjs check specs/LIB-101.json    # one spec file
+node ../../bin/requiremento.mjs serve                       # http://localhost:8000/specs.html?spec=LIB-101.json
 
 # Schema validation (needs network the first time), from the repository root
 npx ajv-cli@5 validate --spec=draft2020 -s schemas/specs.schema.json -d examples/library/specs/LIB-101.json
@@ -50,7 +50,7 @@ npx ajv-cli@5 validate --spec=draft2020 -s schemas/terms.schema.json -d examples
 ```
 
 There are no unit tests. After any change, run both checkers and the schema validation, and for a change to a page,
-open it through `specky serve` in Chrome or Edge and click through the affected part.
+open it through `requiremento serve` in Chrome or Edge and click through the affected part.
 
 ## Hard rules
 
@@ -63,7 +63,7 @@ open it through `specky serve` in Chrome or Edge and click through the affected 
   or `specs.html` can't load it from `file://`.
 - **IDs are stable.** Never rename or reuse an ID in the example data. Withdraw it (see `withdrawn`). This is the rule the
   tool teaches, so the example must follow it.
-- **The example must stay valid.** `examples/library/terms/terms.json` and `examples/library/specs/LIB-101.json` pass `specky check` without errors or
+- **The example must stay valid.** `examples/library/terms/terms.json` and `examples/library/specs/LIB-101.json` pass `requiremento check` without errors or
   warnings, and the schema validation. A change that breaks them is not done.
 
 ## Editing the data files

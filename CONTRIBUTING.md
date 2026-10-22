@@ -1,6 +1,6 @@
-# Contributing to specky
+# Contributing to requiremento
 
-This file is for people who change specky itself. To use it in a project, read the [README](README.md).
+This file is for people who change requiremento itself. To use it in a project, read the [README](README.md).
 
 If you are an AI agent, read [AGENTS.md](AGENTS.md) too: it holds the rules for this repository.
 
@@ -11,9 +11,9 @@ data.
 
 ```
 package.json
-bin/specky.mjs           command line: init, new, check, serve
+bin/requiremento.mjs           command line: init, new, check, serve
 lib/
-  config.mjs             finds and reads specky.json
+  config.mjs             finds and reads requiremento.json
   check.mjs              the check command
   check-terms.mjs        checks of the terms file
   specs-lib.js           shared logic: key order, serialization, spec checks (used by specs.html and the checker)
@@ -26,7 +26,7 @@ schemas/
   terms.schema.json      JSON Schema of the terms file
   specs.schema.json      JSON Schema of a specification
 examples/library/        a project that uses the tool (library lending domain), not part of the package
-  specky.json            its config
+  requiremento.json            its config
   terms/terms.json       its terms
   specs/LIB-101.json     its specification
 ```
@@ -49,8 +49,8 @@ There are no unit tests. Check the example, validate it against the schemas, and
 ```bash
 # The example project
 cd examples/library
-node ../../bin/specky.mjs check
-node ../../bin/specky.mjs serve        # http://localhost:8000
+node ../../bin/requiremento.mjs check
+node ../../bin/requiremento.mjs serve        # http://localhost:8000
 
 # Schemas (needs network the first time), from the repository root
 npx ajv-cli@5 validate --spec=draft2020 -s schemas/specs.schema.json -d examples/library/specs/LIB-101.json
@@ -66,8 +66,8 @@ terms/terms.json: OK (14 terms, 2 questions)
 specs/LIB-101.json: OK (12 ACs, 10 rules, 19 examples, 6 test cases, 33 data items)
 ```
 
-Test a change to a page in Chrome or Edge through `specky serve`. To try the CLI in a fresh project, run
-`node <path to this repository>/bin/specky.mjs init` in an empty folder.
+Test a change to a page in Chrome or Edge through `requiremento serve`. To try the CLI in a fresh project, run
+`node <path to this repository>/bin/requiremento.mjs init` in an empty folder.
 
 ## Where a change goes
 
@@ -83,7 +83,7 @@ Test a change to a page in Chrome or Edge through `specky serve`. To try the CLI
 ## Screenshots and logo
 
 `docs/images/` holds the logo and the README screenshots. They show the example project, so retake them when a page's look
-or the example changes. With `specky serve` running in `examples/library` (port 8124 here):
+or the example changes. With `requiremento serve` running in `examples/library` (port 8124 here):
 
 ```bash
 chrome --headless=new --hide-scrollbars --window-size=1400,900 --virtual-time-budget=10000 \
@@ -94,7 +94,7 @@ The pages need the network once for Bootstrap. The images are not part of the np
 
 ## The example data
 
-It is the specification of the tool, so it must follow its own rules: it passes `specky check` without errors or warnings
+It is the specification of the tool, so it must follow its own rules: it passes `requiremento check` without errors or warnings
 and passes the schema validation, and IDs are never renamed or reused (withdraw them). Spec files keep the format that
 `serialize` in `lib/specs-lib.js` writes. Every change to a data file appends a changelog entry (see the README for the
 actions). Use "Jane Doe" and "John Roe" as example authors.

@@ -1,13 +1,13 @@
 {
-  "name": "specky",
+  "name": "requiremento",
   "version": "0.1.0",
   "description": "Living requirements as JSON: shared terms, one specification per ticket, viewers/editors and checkers. No dependencies.",
   "license": "MIT",
   "type": "commonjs",
-  "bin": { "specky": "bin/specky.mjs" },
+  "bin": { "requiremento": "bin/requiremento.mjs" },
   "files": ["bin", "lib", "pages", "schemas"],
   "engines": { "node": ">=18" },
   "scripts": {
-    "check:example": "cd examples/library && node ../../bin/specky.mjs check"
+    "check:example": "cd examples/library && node ../../bin/requiremento.mjs check"
   }
 }

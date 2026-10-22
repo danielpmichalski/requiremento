@@ -1,21 +1,21 @@
-# specky: guide for AI agents
+# requiremento: guide for AI agents
 
 This project keeps its requirements as JSON files that you edit directly: one **terms file** (the shared vocabulary)
-and one **spec file** per ticket. `specky.json` says where they are. Run `specky check` after every edit.
+and one **spec file** per ticket. `requiremento.json` says where they are. Run `requiremento check` after every edit.
 
-Get the exact shape of a file with `specky schema specs` or `specky schema terms` (JSON Schema). The checker covers
+Get the exact shape of a file with `requiremento schema specs` or `requiremento schema terms` (JSON Schema). The checker covers
 what a schema can't, so the schema alone is not enough.
 
 ## Workflow
 
-1. Read `specky.json`, then the terms file, then the spec you work on. Use the words of the terms file.
+1. Read `requiremento.json`, then the terms file, then the spec you work on. Use the words of the terms file.
 2. Edit the JSON. Keep the key order and the 2-space indent of the file (a hand edit that changes them only warns).
 3. Append a changelog entry for every change: `{ "date": "YYYY-MM-DD", "author": "<git user.name>", "action": "...", "ref": "<ID or empty>", "summary": "<one line>" }`.
    Changelogs are append-only, oldest first. Spec actions: `added`, `changed`, `withdrawn`, `deleted`, `decision`.
    Terms actions: `added`, `changed`, `retired`, `deleted`, `question`.
-4. Run `specky check`. Fix every error. Fix warnings too unless you know why they are there.
+4. Run `requiremento check`. Fix every error. Fix warnings too unless you know why they are there.
 
-New spec: `specky new <KEY> "<title>"` (creates `<specs folder>/<KEY>.json`).
+New spec: `requiremento new <KEY> "<title>"` (creates `<specs folder>/<KEY>.json`).
 
 ## Rules you must follow
 
