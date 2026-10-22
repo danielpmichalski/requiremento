@@ -1,6 +1,6 @@
 <p align="center"><img src="docs/images/logo.svg" alt="requiremento" width="340"></p>
 
-# Specification by Example
+# Requiremento
 
 A small, dependency-free toolkit for writing **living requirements** as plain JSON files, in the spirit of
 [Specification by Example](https://gojko.net/books/specification-by-example/) and Domain-Driven Design's
