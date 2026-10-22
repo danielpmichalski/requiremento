@@ -1,0 +1,1915 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Specification</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <style>
+    :root {
+      --s-accent: #1677c9;
+      --s-flash: #fff3bf;
+      --s-border: #e3e6ea;
+      --s-soft: #f6f8fa;
+      --s-rule: #6f42c1;
+      --s-data: #0b7a75;
+      --s-given: #0d6efd; --s-when: #c55a00; --s-then: #198754; --s-but: #b02a37;
+    }
+    [data-bs-theme="dark"] {
+      --s-accent: #6cb4f5;
+      --s-flash: #4a4320;
+      --s-border: #343a40;
+      --s-soft: #1f2327;
+      --s-rule: #b392f0;
+      --s-data: #4fd1c5;
+      --s-given: #79b8ff; --s-when: #ffab70; --s-then: #85e89d; --s-but: #f97583;
+    }
+    body { background: var(--bs-body-bg); font-size: .93rem; }
+    /* Lighter and italic, so examples don't read as filled-in values. */
+    .form-control::placeholder { color: var(--bs-secondary-color); opacity: .55; font-style: italic; }
+    .topbar { backdrop-filter: blur(6px); }
+    .sidebar { position: sticky; top: 4.5rem; max-height: calc(100vh - 5rem); overflow-y: auto; }
+    .sidebar .nav-link { padding: .15rem .5rem; color: var(--bs-body-color); border-radius: .25rem; display: flex; justify-content: space-between; gap: .4rem; }
+    .sidebar .nav-link:hover { background: var(--bs-tertiary-bg); }
+    .sidebar .nav-link.current { background: var(--bs-primary-bg-subtle); color: var(--bs-primary-text-emphasis); font-weight: 600; }
+    .sidebar .nav-link.current-parent { font-weight: 600; }
+    .sidebar .lvl2 { padding-left: 1.3rem; font-size: .8rem; color: var(--bs-secondary-color); }
+    /* --sticky-top (top bar + filter banner), --sec-head-h and --sub-head-h are measured by updateStickyVars(). */
+    :root { --sticky-top: 3.6rem; --sec-head-h: 2.6rem; --sub-head-h: 2.2rem; }
+    [id] { scroll-margin-top: calc(var(--sticky-top) + var(--sec-head-h) + .5rem); }
+    .story-box [id], .rule-group [id] { scroll-margin-top: calc(var(--sticky-top) + var(--sec-head-h) + var(--sub-head-h) + .5rem); }
+    section[id] { scroll-margin-top: var(--sticky-top); }
+    .spec-section { border: 1px solid var(--s-border); border-radius: .4rem; padding: 1rem 1.25rem; margin-bottom: 1.25rem; }
+    .spec-section > .sec-head h2 { font-size: 1.3rem; margin: 0; }
+    /* Section and sub-section heads stick below the top bar until the next one pushes them out. */
+    .sec-head { position: sticky; top: var(--sticky-top); z-index: 3; background: var(--bs-body-bg); border-bottom: 2px solid var(--s-border);
+      margin: -.5rem -1.25rem .8rem; padding: .5rem 1.25rem .35rem; }
+    .sub-head { position: sticky; top: calc(var(--sticky-top) + var(--sec-head-h)); z-index: 2; background: var(--bs-body-bg); }
+    .md-h { font-size: 1.05rem; margin-top: 1rem; }
+    .item { border: 1px solid var(--s-border); border-radius: .35rem; padding: .6rem .85rem; margin-bottom: .7rem; transition: background-color .6s; }
+    .item.flash, tr.flash > td { background: var(--s-flash) !important; }
+    .item h4 { font-size: 1rem; margin: 0; }
+    .item.rule { border-left: 4px solid var(--s-rule); }
+    .item.ac { border-left: 4px solid #198754; }
+    .item.ac[data-status="pending"] { border-left-color: #ffc107; }
+    .item.ac[data-status="known-limitation"] { border-left-color: #6c757d; }
+    .item.ac[data-status="target"] { border-left-color: #0dcaf0; }
+    .item.ac[data-status="draft"] { border-left-color: #adb5bd; border-left-style: dashed; }
+    .story-box { border: 1px solid var(--s-border); border-radius: .4rem; margin-bottom: 1.2rem; }
+    .story-box > .story-head { background: var(--bs-tertiary-bg); padding: .6rem .85rem .2rem; border-radius: .4rem .4rem 0 0; }
+    .story-box > .story-intro { background: var(--bs-tertiary-bg); padding: 0 .85rem .6rem; border-bottom: 1px solid var(--s-border); }
+    .story-box > .story-body { padding: .7rem .85rem; }
+    .meta-grid { display: grid; grid-template-columns: max-content 1fr; gap: .1rem .75rem; font-size: .85rem; background: var(--s-soft); border-radius: .25rem; padding: .35rem .6rem; margin: .4rem 0 .5rem; }
+    .meta-grid .lbl { color: var(--bs-secondary-color); font-weight: 600; }
+    .idlabel { font-family: var(--bs-font-monospace); font-weight: 600; background: var(--bs-tertiary-bg); border-radius: .2rem; padding: 0 .3em; white-space: nowrap; }
+    a.permalink { color: inherit; text-decoration: none; }
+    a.permalink:hover { color: var(--s-accent); text-decoration: underline dotted; }
+    .copy-link { border: 0; background: transparent; color: var(--bs-secondary-color); padding: 0 .25em; margin-left: .15em; line-height: 1; border-radius: .2rem; display: inline-flex; align-items: center; vertical-align: middle; opacity: 0; cursor: pointer; }
+    .copy-link svg { width: .75em; height: .75em; display: block; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .copy-link:hover, .copy-link:focus-visible, .copy-link.copied { opacity: 1; color: var(--s-accent); }
+    .copy-link { position: relative; }
+    .copy-link.copied { color: var(--bs-success); }
+    .copy-link::after { content: attr(data-tip); position: absolute; bottom: calc(100% + 4px); left: 50%; transform: translateX(-50%); background: #212529; color: #fff; font: 500 .75rem/1 var(--bs-body-font-family); padding: .35em .6em; border-radius: .25rem; white-space: nowrap; pointer-events: none; opacity: 0; visibility: hidden; z-index: 10; }
+    .copy-link:hover::after, .copy-link:focus-visible::after, .copy-link.copied::after { opacity: 1; visibility: visible; }
+    h2:hover > .copy-link, h3:hover > .copy-link, h4:hover > .copy-link, h5:hover > .copy-link, h6:hover > .copy-link, td:hover > .copy-link, .example:hover > div > div > .copy-link { opacity: 1; }
+    @media (hover: none) { .copy-link { opacity: 1; } }
+    a.idref { font-family: var(--bs-font-monospace); font-size: .88em; text-decoration: none; border-bottom: 1px dotted var(--s-accent); color: var(--s-accent); white-space: nowrap; }
+    a.dataref { font-family: var(--bs-font-monospace); font-size: .88em; text-decoration: none; border-bottom: 1px dotted var(--s-data); color: var(--s-data); white-space: nowrap; }
+    a.dataref:hover { background: var(--bs-tertiary-bg); }
+    .data-table td { vertical-align: top; }
+    .data-table td.c-id { white-space: nowrap; }
+    .badge.test-only { background: transparent; color: var(--bs-secondary-color); border: 1px dashed var(--bs-secondary-color); font-weight: 500; }
+    .peek .meta-grid { margin: .3rem 0 .2rem; }
+    .withdrawn-id { font-family: var(--bs-font-monospace); font-size: .88em; text-decoration: line-through; color: var(--bs-danger); }
+    a.termref { color: inherit; text-decoration: none; border-bottom: 1px dotted var(--bs-secondary-color); }
+    a.termref:hover, a.idref:hover { background: var(--bs-tertiary-bg); }
+    /* Links that leave the page (term definitions) carry an arrow; the screen-reader text comes from their aria-label. */
+    a[target="_blank"]::after { content: "\2197"; content: "\2197" / ""; font-size: .75em; margin-left: .1em; color: var(--bs-secondary-color); }
+    .broken-link { color: var(--bs-danger); border-bottom: 1px dashed var(--bs-danger); }
+    .badge.st-implemented { background: #198754; color: #fff; }
+    .badge.st-pending { background: #ffc107; color: #212529; }
+    .badge.st-known-limitation { background: #6c757d; color: #fff; }
+    .badge.st-target { background: #0dcaf0; color: #212529; }
+    .badge.st-draft { background: transparent; color: var(--bs-body-color); border: 1px dashed var(--bs-secondary-color); }
+    button.status-chip { border: 0; }
+    button.status-chip.active { outline: 2px solid var(--bs-body-color); outline-offset: 1px; }
+    .scenario { border-left: 3px solid var(--bs-secondary-color); background: var(--s-soft); padding: .4rem .75rem; margin: .5rem 0; border-radius: 0 .25rem .25rem 0; }
+    .sc-title { font-weight: 600; margin-bottom: .2rem; }
+    .sc-kw { color: var(--s-rule); }
+    .step { display: flex; gap: .6rem; padding: .05rem 0; }
+    .kw { flex: 0 0 3.2rem; text-align: right; font-weight: 700; font-size: .82rem; padding-top: .1rem; }
+    .kw-given { color: var(--s-given); } .kw-when { color: var(--s-when); } .kw-then { color: var(--s-then); } .kw-but { color: var(--s-but); }
+    .kw.and { opacity: .6; }
+    .ex-label { font-weight: 600; color: var(--s-rule); margin: .35rem 0 .15rem; font-size: .85rem; }
+    .ph { color: var(--s-rule); font-family: var(--bs-font-monospace); font-size: .9em; }
+    .scenario table, .item table, .spec-section table { font-size: .84rem; }
+    .example { padding: .3rem .5rem; margin: .3rem 0 .3rem .3rem; border-left: 2px solid var(--s-border); }
+    details > summary { cursor: pointer; font-size: .84rem; color: var(--bs-secondary-color); }
+    .used-body { min-width: 22rem; max-width: 36rem; max-height: 22rem; overflow: auto; }
+    .used-group ul { margin-left: .2rem; }
+    .refs { font-size: .78rem; color: var(--bs-secondary-color); margin-top: .35rem; }
+    .btn-edit { font-size: .8rem; padding: 0; text-decoration: none; }
+    .count-card { text-align: center; padding: .45rem; }
+    .count-card .num { font-size: 1.5rem; font-weight: 700; line-height: 1.1; }
+    .count-card .lab { font-size: .76rem; color: var(--bs-secondary-color); }
+    .count-card .pfx { font-family: var(--bs-font-monospace); font-size: .7rem; color: var(--bs-secondary-color); margin-top: .1rem; }
+    .preview { border: 1px dashed var(--s-border); border-radius: .3rem; padding: .4rem .6rem; font-size: .88rem; min-height: 2rem; max-height: 16rem; overflow: auto; }
+    .idchips { display: flex; flex-wrap: wrap; gap: .25rem; align-items: center; padding: .25rem .4rem; cursor: text; }
+    .idchips:focus-within { border-color: #86b7fe; box-shadow: 0 0 0 .25rem rgba(13,110,253,.25); }
+    .idchips input { flex: 1 1 8rem; min-width: 8rem; border: 0; outline: 0; background: transparent; color: inherit; padding: .15rem 0; }
+    .idchip { display: inline-flex; align-items: center; gap: .2rem; font-family: var(--bs-font-monospace); font-size: .82rem; padding: .05rem .2rem .05rem .45rem;
+      border: 1px solid var(--s-border); border-radius: 1rem; background: var(--bs-tertiary-bg); }
+    .idchip.unknown { border-color: #ffc107; background: rgba(255,193,7,.18); }
+    .idchip button { border: 0; background: transparent; color: inherit; line-height: 1; padding: 0 .25rem; border-radius: 50%; }
+    .idchip button:hover, .idchip button:focus-visible { background: rgba(127,127,127,.3); }
+    .edit-note { flex: 0 0 auto; }
+    .diff-field { margin-bottom: .8rem; }
+    .diff-field pre { margin: 0; padding: .4rem .6rem; border: 1px solid var(--s-border); border-radius: .3rem; font-size: .85rem; white-space: pre-wrap; max-height: 14rem; overflow: auto; }
+    .diff-field .add, .diff-field .del { display: block; }
+    .diff-field .add { background: rgba(25,135,84,.18); }
+    .diff-field .add::before { content: "+ "; }
+    .diff-field .del { background: rgba(220,53,69,.18); text-decoration: line-through; }
+    .diff-field .del::before { content: "− "; display: inline-block; text-decoration: none; }
+    .diff-field .del.replaced { text-decoration: none; }
+    .diff-field mark { color: inherit; padding: 0 .1rem; border-radius: .15rem; }
+    .diff-field mark.add-w { background: rgba(25,135,84,.5); }
+    .diff-field mark.del-w { background: rgba(220,53,69,.5); text-decoration: line-through; }
+    .unsaved-row { background: var(--s-flash) !important; }
+    .empty-state { max-width: 42rem; margin: 4rem auto; }
+    .hidden-by-filter { display: none !important; }
+    ::highlight(search-hit) { background: #ffe066; color: #000; }
+    .peek { position: fixed; z-index: 2000; max-width: 30rem; font-size: .85rem; box-shadow: 0 .4rem 1.2rem rgba(0,0,0,.18); }
+    #filterBanner { position: sticky; top: var(--topbar-h, 3.6rem); z-index: 1010; }
+    code { color: #a52a6a; }
+    [data-bs-theme="dark"] code { color: #f0a0c8; }
+    @media (max-width: 991.98px) { .sidebar { position: static; max-height: none; } }
+  </style>
+</head>
+<body>
+<nav class="navbar sticky-top bg-body-tertiary border-bottom topbar">
+  <div class="container-fluid gap-2 flex-nowrap">
+    <a id="brand" class="navbar-brand fw-semibold text-truncate" href="#overview">Specification</a>
+    <input id="search" class="form-control form-control-sm flex-shrink-1" style="max-width: 22rem" type="search"
+           placeholder="Search ACs, rules, examples ( / )" aria-label="Search">
+    <span id="fileStatus" class="badge text-bg-secondary d-none d-lg-inline"></span>
+    <button id="termsStatus" class="badge border-0 d-none d-md-inline" title="Load terms/terms.json"></button>
+    <input id="author" class="form-control form-control-sm flex-shrink-1 ms-auto" style="max-width: 12rem; min-width: 7rem"
+           placeholder="Your name" required aria-label="Your name, for the changelog (required)"
+           title="Your name, for the changelog (required)">
+    <div class="btn-group btn-group-sm flex-shrink-0">
+      <button id="btnExpand" class="btn btn-outline-secondary d-none d-xl-inline" title="Expand all examples">Expand</button>
+      <button id="btnCollapse" class="btn btn-outline-secondary d-none d-xl-inline" title="Collapse all examples">Collapse</button>
+      <button id="btnOpen" class="btn btn-outline-secondary" title="Open a spec file">Open</button>
+      <button id="btnReload" class="btn btn-outline-secondary d-none" title="Reload the spec from disk">Reload</button>
+      <button id="btnSave" class="btn btn-primary" disabled title="Save the spec file (Ctrl+S)">Save</button>
+    </div>
+  </div>
+</nav>
+
+<div class="container-fluid">
+  <div id="emptyState" class="empty-state text-center d-none">
+    <h1 class="h3">Specification</h1>
+    <p class="text-body-secondary">This page shows and edits a requirements specification, for example
+      <code>specs/LIB-101.json</code>. Opened directly from disk, the browser can't read that file by itself,
+      so pick it once. Then load <code>terms/terms.json</code> too, so the page can show and check the terms.</p>
+    <button id="btnReconnect" class="btn btn-primary d-none mb-2">Reconnect <span id="reconnectName"></span></button>
+    <div><button id="btnOpenEmpty" class="btn btn-outline-primary">Open a spec file</button></div>
+    <p class="small text-body-secondary mt-3">Served by a web server, open <code>specs.html?spec=LIB-101.json</code>.</p>
+    <p id="fsaHint" class="small text-body-secondary d-none">Your browser can't save files directly. You can read and edit
+      here, then download the result and replace the file. Chrome and Edge save directly.</p>
+  </div>
+
+  <div id="app" class="row d-none">
+    <aside class="col-lg-3 col-xl-2 pt-3">
+      <div class="sidebar">
+        <nav id="toc" class="nav flex-column small"></nav>
+      </div>
+    </aside>
+
+    <main class="col-lg-9 col-xl-10 pt-3 pb-5">
+      <div id="filterBanner" class="alert alert-info py-1 px-2 small d-none d-flex align-items-center gap-2 mb-2" role="status">
+        <span id="filterText"></span>
+        <span id="hitNav" class="d-none text-nowrap ms-auto">
+          <span id="hitPos" class="me-1"></span>
+          <button type="button" class="btn btn-sm btn-outline-secondary py-0" id="btnHitPrev" aria-label="Previous match" title="Previous match (Shift+Enter in the search box)">&uarr;</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary py-0" id="btnHitNext" aria-label="Next match" title="Next match (Enter in the search box)">&darr;</button>
+        </span>
+        <button type="button" class="btn btn-sm btn-outline-secondary py-0 text-nowrap" id="btnClearFilters">Clear filters</button>
+      </div>
+      <div id="problems" class="alert alert-danger d-none"></div>
+      <div id="warnings" class="alert alert-warning d-none"></div>
+      <section id="overview" class="spec-section keep"></section>
+      <div id="sections"></div>
+      <section id="changelog" class="spec-section keep">
+        <div class="sec-head"><h2>Changelog</h2></div>
+        <p class="small text-body-secondary">Every change made on this page adds an entry. Agents add their entries themselves.</p>
+        <div class="table-responsive"><table class="table table-sm">
+          <thead><tr><th>Date</th><th>Author</th><th>Action</th><th>Item</th><th>Change</th></tr></thead>
+          <tbody id="changes"></tbody>
+        </table></div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<!-- Generic editor -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editTitle" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable"><form class="modal-content" id="editForm" novalidate>
+    <div class="modal-header"><h2 class="modal-title h5" id="editTitle">Edit</h2>
+      <span id="editDirty" class="badge text-bg-warning ms-2 d-none">Unsaved changes</span>
+      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+    <div class="modal-body" id="editBody">
+      <div id="editFields" class="row g-2"></div>
+      <div id="editError" class="alert alert-danger mt-3 mb-0 d-none"></div>
+    </div>
+    <div class="modal-body d-none" id="editReview" aria-live="polite"></div>
+    <div class="edit-note border-top px-3 py-2 row g-2 m-0">
+      <div class="col-md"><label class="form-label mb-1" for="fNote">Why (changelog note)</label>
+        <input id="fNote" class="form-control" placeholder="e.g. PO decision in the review of 2026-10-20"></div>
+      <div id="authorRow" class="col-md-4 d-none"><label class="form-label mb-1" for="fAuthor">Your name (for the changelog)</label>
+        <input id="fAuthor" class="form-control" autocomplete="name"></div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" id="btnBack" class="btn btn-outline-secondary d-none">Back to editing</button>
+      <button type="button" id="btnWithdraw" class="btn btn-outline-danger">Withdraw ID</button>
+      <button type="button" id="btnDelete" class="btn btn-outline-danger me-auto">Delete</button>
+      <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+      <button type="submit" id="btnApply" class="btn btn-primary">Apply</button>
+    </div>
+  </form></div>
+</div>
+<datalist id="dlTerms"></datalist>
+<input id="filePicker" type="file" accept=".json,application/json" hidden>
+<input id="termsPicker" type="file" accept=".json,application/json" hidden>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="specs-lib.js"></script>
+<script>
+'use strict';
+const L = window.SpecLib;
+
+// ---------- state ----------
+const state = {
+  spec: null,          // parsed spec file
+  diskText: null,      // spec file content as last read from or written to disk; detects outside changes
+  handle: null,        // FileSystemFileHandle of the spec, when connected
+  source: null,        // 'http' | 'file' | 'upload'
+  fileName: 'spec.json',
+  specUrl: null,       // URL of the spec when read over http
+  dirty: false,
+  savedChangelogLength: 0,
+  terms: null,         // parsed terms.json, or null
+  termsName: '',
+  filterStatus: '',
+  filterIds: null,     // { label, ids: Set } while the document is filtered to the users of one data item
+  // derived on render
+  ids: new Map(), withdrawn: new Set(), idRe: null, refBy: new Map(), termRe: null, termNames: new Map(),
+  data: new Map(), dataKinds: new Map(), dataRe: null, // reference data items and kinds by id, and the regex that finds their IDs
+};
+const hasFsa = 'showOpenFilePicker' in window;
+const $ = (id) => document.getElementById(id);
+const editModal = new bootstrap.Modal($('editModal'));
+let editing = null; // { collection, key, isNew }
+let editOpener = null; // { el, selector } of the Edit / + button that opened the editor, to find it again after a re-render
+let editBaseline = ''; // form state right after opening, to detect unsaved input
+let editForceClose = false; // set when the editor closes after Apply, Delete or Withdraw: nothing to discard
+let reviewing = false; // the editor shows the review of its changes instead of the form
+
+// ---------- theme ----------
+const darkQuery = matchMedia('(prefers-color-scheme: dark)');
+const applyTheme = () => document.documentElement.setAttribute('data-bs-theme', darkQuery.matches ? 'dark' : 'light');
+applyTheme();
+darkQuery.addEventListener('change', applyTheme);
+
+// ---------- helpers ----------
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const pad = (n) => String(Math.abs(n)).padStart(2, '0');
+/** Local date, e.g. 2026-10-19. */
+const today = (d = new Date()) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+/** Local date and time with UTC offset, e.g. 2026-10-19T14:32+02:00. */
+const now = (d = new Date()) => {
+  const off = -d.getTimezoneOffset();
+  return `${today(d)}T${pad(d.getHours())}:${pad(d.getMinutes())}${off < 0 ? '-' : '+'}${pad(Math.trunc(off / 60))}:${pad(off % 60)}`;
+};
+/** A changelog date as "2026-10-19 14:32" (or just the date for date-only entries). */
+const shortDate = (s) => (s ?? '').slice(0, 16).replace('T', ' ');
+const LABEL = { stories: 'Story', ruleGroups: 'Rule group', rules: 'Rule', examples: 'Example', acceptanceCriteria: 'AC', testCases: 'Test case',
+  limitations: 'Known limitation', assumptions: 'Assumption', risks: 'Risk', questions: 'Open question', decisions: 'Decision',
+  withdrawn: 'Withdrawn IDs', sections: 'Section', meta: 'Document control', terms: 'Terms', data: 'Data item', dataKinds: 'Data kind' };
+const lower = (c) => (/^[A-Z]+$/.test(LABEL[c]) ? LABEL[c] : LABEL[c].toLowerCase());
+const STATUS_LABEL = Object.fromEntries(L.AC_STATUSES.map((s) => [s.id, s.label]));
+const statusBadge = (st, extra = '') => `<span class="badge st-${esc(st)} ${extra}">${esc(STATUS_LABEL[st] ?? st)}</span>`;
+const riskLevel = (r) => { const v = r.likelihood * r.impact; return v >= 6 ? 'High' : v >= 3 ? 'Medium' : 'Low'; };
+const plain = (text) => String(text ?? '').replace(/\[\[([^\]]+)]]/g, (_, id) => termOf(id)?.term || id)
+  .replace(/[`*]/g, '').replace(/\s*\|\s*/g, ' ').replace(/\s+/g, ' ').trim();
+const short = (s, n = 260) => (s.length > n ? s.slice(0, n - 1) + '…' : s);
+const termOf = (id) => state.terms?.terms.find((t) => t.id === id);
+const termsPage = () => (state.spec?.meta.termsFile || '../terms/terms.json').replace(/terms\.json$/, 'terms.html');
+const coll = (c) => state.spec[c];
+const find = (c, key) => (c === 'decisions' || c === 'withdrawn') ? coll(c)[key] : coll(c).find((x) => x.id === key);
+
+// ---------- text rendering ----------
+/** A link to a term's definition on the terms page: opens a new tab, which the arrow and the accessible name say. */
+function termAnchor(id, html, name) {
+  return `<a class="termref" data-term="${esc(id)}" href="${esc(termsPage())}#${esc(id)}" target="_blank" rel="noopener" aria-label="${esc(name)} (definition, opens in a new tab)">${html}</a>`;
+}
+
+function termLink(id) {
+  if (!state.terms) return `<span class="termref" data-term="${esc(id)}">${esc(id)}</span>`;
+  const t = termOf(id);
+  if (!t) return `<span class="broken-link" title="Missing in terms.json: ${esc(id)}">${esc(id)}</span>`;
+  return termAnchor(id, esc(t.term), t.term);
+}
+
+function dataLink(id) {
+  return state.data.has(id) ? `<a class="dataref" href="#${esc(id)}" data-ref="${esc(id)}">${esc(id)}</a>`
+    : `<span class="broken-link" title="Unknown data item">${esc(id)}</span>`;
+}
+/** Link to an item of the spec or a data item; anything else as plain text. */
+const anyLink = (id) => state.ids.has(id) ? `<a class="idref" href="#${esc(id)}" data-ref="${esc(id)}">${esc(id)}</a>` : state.data.has(id) ? dataLink(id) : esc(id);
+
+/** Links IDs and highlights terms in already escaped HTML, outside of tags, links and code. */
+function linkify(html) {
+  let skip = 0;
+  return html.split(/(<[^>]+>)/).map((part) => {
+    if (part.startsWith('<')) {
+      if (/^<(a|code)[\s>]/.test(part)) skip++;
+      else if (/^<\/(a|code)>/.test(part)) skip = Math.max(0, skip - 1);
+      return part;
+    }
+    if (skip || !part) return part;
+    const pieces = state.idRe ? part.split(state.idRe) : [part];
+    return pieces.map((p, i) => {
+      if (i % 2 === 1) {
+        if (state.ids.has(p)) return `<a class="idref" href="#${p}" data-ref="${p}">${p}</a>`;
+        if (state.withdrawn.has(p)) return `<span class="withdrawn-id" data-ref="${p}" title="Withdrawn ID">${p}</span>`;
+        return `<span class="broken-link" title="Unknown ID">${p}</span>`;
+      }
+      const data = state.dataRe ? p.split(state.dataRe) : [p];
+      return data.map((q, j) => {
+        if (j % 2 === 1) return dataLink(q);
+        if (!state.termRe) return q;
+        return q.replace(state.termRe, (m) => {
+          const id = state.termNames.get(m.toLowerCase().replace(/s$/, '')) ?? state.termNames.get(m.toLowerCase());
+          return id ? termAnchor(id, m, m) : m;
+        });
+      }).join('');
+    }).join('');
+  }).join('');
+}
+
+/** Inline markdown (code, term links, bold, italic, links); a newline in the text becomes a line break. */
+function inline(text) {
+  return String(text ?? '').split(/(`[^`]*`)/).map((part) => {
+    if (part.length > 1 && part.startsWith('`') && part.endsWith('`')) return `<code>${esc(part.slice(1, -1))}</code>`;
+    let h = esc(part).replace(/\[\[([^\]]+)]]/g, (_, id) => termLink(id.trim()));
+    h = h.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/(^|[^\w*])\*(?!\s)([^*]+?)\*(?!\w)/g, '$1<em>$2</em>');
+    return linkify(h);
+  }).join('').replace(/\n/g, '<br>');
+}
+
+const splitCells = (row) => row.trim().replace(/^\|/, '').replace(/\|$/, '').split(/(?<!\\)\|/).map((c) => c.trim().replace(/\\\|/g, '|'));
+function mdTable(rows, cls = 'table table-sm table-bordered') {
+  const body = rows.filter((r, i) => !(i === 1 && /^\|?\s*:?-{2,}/.test(r.trim())));
+  const [head, ...rest] = body.map(splitCells);
+  return `<div class="table-responsive"><table class="${cls}"><thead><tr>${head.map((c) => `<th>${inline(c)}</th>`).join('')}</tr></thead>
+    <tbody>${rest.map((r) => `<tr>${r.map((c) => `<td>${inline(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+}
+function mdList(lines) {
+  let html = '';
+  const stack = [];
+  for (const l of lines) {
+    const m = l.match(/^(\s*)([-*]|\d+\.)\s+(.*)$/);
+    const indent = m[1].length;
+    while (stack.length && indent < stack[stack.length - 1].indent) html += `</li></${stack.pop().tag}>`;
+    const top = stack[stack.length - 1];
+    if (!top || indent > top.indent) { const tag = /\d/.test(m[2]) ? 'ol' : 'ul'; stack.push({ indent, tag }); html += `<${tag}><li>`; }
+    else html += '</li><li>';
+    html += inline(m[3]);
+  }
+  while (stack.length) html += `</li></${stack.pop().tag}>`;
+  return html;
+}
+const LIST_LINE = /^\s*([-*]|\d+\.)\s+/;
+/** Markdown subset: headings, paragraphs, lists, pipe tables, bold, italic, code. */
+/** Stable anchor id for a markdown heading, derived from its text. */
+const headingId = (text) => 'h-' + text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+function md(text) {
+  const lines = String(text ?? '').split('\n');
+  let html = '';
+  let i = 0;
+  while (i < lines.length) {
+    const l = lines[i];
+    if (!l.trim()) { i++; continue; }
+    const h = l.match(/^(#{2,6})\s+(.*)$/);
+    if (h) { const lvl = Math.min(6, h[1].length + 1); html += `<h${lvl} class="md-h" id="${headingId(h[2])}">${inline(h[2])}</h${lvl}>`; i++; continue; }
+    if (l.trim().startsWith('|')) { const rows = []; while (i < lines.length && lines[i].trim().startsWith('|')) rows.push(lines[i++]); html += mdTable(rows); continue; }
+    if (LIST_LINE.test(l)) { const items = []; while (i < lines.length && LIST_LINE.test(lines[i])) items.push(lines[i++]); html += mdList(items); continue; }
+    const para = [];
+    while (i < lines.length && lines[i].trim() && !/^#{2,6}\s/.test(lines[i]) && !lines[i].trim().startsWith('|') && !LIST_LINE.test(lines[i])) para.push(lines[i++]);
+    html += `<p class="mb-2">${inline(para.join('\n'))}</p>`;
+  }
+  return html;
+}
+
+/** One Gherkin scenario with coloured keywords and Examples tables. */
+function gherkin(sc) {
+  const lines = String(sc).split('\n');
+  let html = '';
+  let last = 'given';
+  for (let i = 0; i < lines.length;) {
+    const l = lines[i].trim();
+    if (!l) { i++; continue; }
+    let m = l.match(/^(Scenario Outline|Scenario|Feature|Background):\s*(.*)$/);
+    if (m) { html += `<div class="sc-title"><span class="sc-kw">${m[1]}:</span> ${inline(m[2])}</div>`; i++; continue; }
+    if (/^Examples:/.test(l)) {
+      html += '<div class="ex-label">Examples</div>';
+      i++;
+      const rows = [];
+      while (i < lines.length && lines[i].trim().startsWith('|')) rows.push(lines[i++]);
+      const [head, ...rest] = rows.map(splitCells);
+      if (head) html += `<div class="table-responsive"><table class="table table-sm table-bordered mb-1"><thead><tr>${head.map((c) => `<th class="ph">${esc(c)}</th>`).join('')}</tr></thead>
+        <tbody>${rest.map((r) => `<tr>${r.map((c) => `<td>${inline(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+      continue;
+    }
+    m = l.match(/^(Given|When|Then|And|But)\s+(.*)$/);
+    const ph = (s) => s.replace(/&lt;([\w ]+?)&gt;/g, '<span class="ph">&lt;$1&gt;</span>');
+    if (m) {
+      const kw = m[1].toLowerCase();
+      if (kw !== 'and') last = kw;
+      html += `<div class="step"><span class="kw kw-${kw === 'and' ? last + ' and' : kw}">${m[1]}</span><span>${ph(inline(m[2]))}</span></div>`;
+    } else {
+      html += `<div class="step"><span class="kw"></span><span>${ph(inline(l))}</span></div>`;
+    }
+    i++;
+  }
+  return `<div class="scenario">${html}</div>`;
+}
+const isGherkin = (s) => /^\s*(Scenario|Feature|Given)\b/.test(s ?? '');
+
+// ---------- derived data ----------
+function derive() {
+  const s = state.spec;
+  state.ids = L.indexIds(s);
+  state.withdrawn = L.withdrawnIds(s);
+  state.idRe = L.idPattern(s);
+  state.refBy = L.referencedBy(s);
+  state.data = new Map((s.data ?? []).map((d) => [d.id, d]));
+  state.dataKinds = new Map((s.dataKinds ?? []).map((k) => [k.id, k]));
+  state.dataRe = L.dataPattern(s);
+  state.termNames = new Map();
+  if (state.terms) {
+    for (const id of s.terms) {
+      const t = termOf(id);
+      if (t && t.status !== 'retired') state.termNames.set(t.term.replace(/\s*\(.*?\)\s*/g, '').toLowerCase(), id);
+    }
+  }
+  const names = [...state.termNames.keys()].sort((a, b) => b.length - a.length).map((n) => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  state.termRe = names.length ? new RegExp(`(?<![\\w-])(?:${names.join('|')})s?(?![\\w-])`, 'gi') : null;
+}
+const refsLine = (id) => {
+  const by = state.refBy.get(id) ?? [];
+  return by.length ? `<div class="refs">Referenced by: ${by.map(anyLink).join(', ')}</div>` : '';
+};
+/** Data IDs mentioned in a text. */
+const dataMentions = (text) => (state.dataRe ? [...String(text ?? '').matchAll(state.dataRe)].map((m) => m[1]) : []);
+/** For a derived column ({ kind, column }): the items of that kind whose column mentions the given item, e.g. the loans of a member. */
+const derivedIds = (item, dc) => (state.spec.data ?? []).filter((x) => x.kind === dc.kind && dataMentions(x.values?.[dc.column]).includes(item.id)).map((x) => x.id);
+/** The items of the spec (not data items) that mention a data item. */
+const dataUsers = (id) => (state.refBy.get(id) ?? []).filter((r) => !state.data.has(r));
+const USED_BY_GROUPS = [['rules', 'Rules'], ['examples', 'Examples'], ['acceptanceCriteria', 'ACs'], ['testCases', 'Test cases']];
+/** Title of a spec item for lists: its title, statement or text, shortened. */
+const itemTitle = (id) => { const it = state.ids.get(id)?.item; return short(plain(it?.title ?? it?.statement ?? it?.text ?? ''), 80); };
+/** The spec items that use a data item, grouped by kind with their titles, and a button that filters the document to them. */
+function usedByHtml(id, users) {
+  const group = (c) => users.filter((u) => (state.ids.get(u)?.collection ?? '') === c);
+  const known = USED_BY_GROUPS.map(([c, label]) => [label, group(c)]);
+  const other = users.filter((u) => !USED_BY_GROUPS.some(([c]) => state.ids.get(u)?.collection === c));
+  const rows = [...known, ['Other', other]].filter(([, ids]) => ids.length)
+    .map(([label, ids]) => `<div class="used-group"><div class="fw-semibold">${label} (${ids.length})</div><ul class="list-unstyled mb-1">`
+      + ids.map((u) => `<li>${anyLink(u)} <span class="text-body-secondary">${esc(itemTitle(u))}</span></li>`).join('') + '</ul></div>').join('');
+  return `<details class="used-by"><summary>${users.length}</summary><div class="used-body"><button type="button" class="btn btn-sm btn-outline-primary py-0 mb-1" data-filter-ids="${esc(id)}">Show only these in the document</button>${rows}</div></details>`;
+}
+const testOnlyBadge = (d) => (d.testOnly ? ' <span class="badge test-only" title="Not used by the examples; only the test cases use it">test cases only</span>' : '');
+const idLinks = (ids) => (ids ?? []).length ? ids.map((x) => linkify(esc(x))).join(', ') : '<span class="text-body-secondary">–</span>';
+/** Accessible name of an Edit button, e.g. "Edit AC AC-09a"; decisions and withdrawn entries are numbered by position. */
+const editName = (c, key, label) => (key === '' ? label : `Edit ${c === 'withdrawn' ? 'withdrawn IDs entry' : lower(c)} ${c === 'decisions' || c === 'withdrawn' ? +key + 1 : key}`);
+/** Accessible name of a "+" button, e.g. "Add AC to US-LOAN-03"; the parent is the story, rule, group or kind it is added under. */
+const addName = (label, defaults) => { const parent = defaults.story ?? defaults.rule ?? defaults.group ?? defaults.kind; return `Add ${label}${parent ? ` to ${parent}` : ''}`; };
+const editBtn = (c, key, label = 'Edit') => { const name = esc(editName(c, key, label === 'Edit list' ? 'Edit terms list' : label)); return `<button type="button" class="btn btn-link btn-edit" data-edit="${c}" data-key="${esc(key)}" aria-label="${name}" title="${name}">${label}</button>`; };
+const addBtn = (c, label, defaults = {}) => { const name = esc(addName(label, defaults)); return `<button type="button" class="btn btn-sm btn-outline-primary py-0" data-add="${c}" data-defaults="${esc(JSON.stringify(defaults))}" aria-label="${name}" title="${name}">+ ${label}</button>`; };
+// The "+ Add" button in each section's sticky head, by the section's list.
+const SECTION_ADD = {
+  data: () => addBtn('dataKinds', 'Data kind'),
+  rules: () => addBtn('ruleGroups', 'Rule group'),
+  acceptanceCriteria: () => addBtn('stories', 'Story'),
+  testCases: () => addBtn('testCases', 'Test case'),
+  limitations: () => addBtn('limitations', 'Known limitation'),
+  assumptions: () => addBtn('assumptions', 'Assumption'),
+  risks: () => addBtn('risks', 'Risk'),
+  questions: () => addBtn('questions', 'Question'),
+  decisions: () => addBtn('decisions', 'Decision', { date: today() }),
+};
+const searchText = (...parts) => esc(parts.flat().map(plain).join(' \u0001 ').toLowerCase());
+
+// ---------- collection renderers ----------
+const RENDER = {
+  meta() {
+    const m = state.spec.meta;
+    const rows = [['Ticket key', esc(m.key)], ['Title', esc(m.fullTitle)], ['Version', esc(m.version)], ['Date', esc(m.date)],
+      ['Document status', esc(m.status)], ['Approved by', m.approvedBy ? `${esc(m.approvedBy)}${m.approvedOn ? ', ' + esc(m.approvedOn) : ''}` : '<span class="text-body-secondary">not yet</span>'],
+      ['Related documents', (m.related ?? []).map((r) => `${esc(r.label)}: <code>${esc(r.path)}</code>`).join('<br>')],
+      ['Precedence', inline(m.precedence)],
+      ['Terms', `<code>${esc(m.termsFile)}</code>`]];
+    return `<div class="d-flex justify-content-end">${editBtn('meta', '', 'Edit document control')}</div>
+      <div class="table-responsive"><table class="table table-sm table-bordered"><tbody>${rows.map(([k, v]) => `<tr><th class="text-nowrap" style="width: 12rem">${k}</th><td>${v}</td></tr>`).join('')}</tbody></table></div>`;
+  },
+
+  terms() {
+    // Shown by term name (by id while terms.json isn't loaded or the term is missing in it).
+    const name = (id) => termOf(id)?.term ?? id;
+    const ids = [...state.spec.terms].sort((a, b) => name(a).localeCompare(name(b), 'en', { sensitivity: 'base' }));
+    const head = `<div class="d-flex justify-content-between align-items-center mb-2"><span class="small text-body-secondary">${ids.length} terms</span>${editBtn('terms', '', 'Edit list')}</div>`;
+    if (!state.terms) {
+      return head + `<div class="alert alert-secondary small">terms.json is not loaded, so the definitions can't be shown.
+        <button type="button" class="btn btn-sm btn-outline-primary py-0 ms-2" data-action="load-terms">Load terms.json</button></div>
+        <p>${ids.map((id) => `<code>${esc(id)}</code>`).join(', ')}</p>`;
+    }
+    return head + `<div class="table-responsive"><table class="table table-sm align-middle"><thead><tr><th>Term</th><th>Definition</th><th>UI</th></tr></thead><tbody>
+      ${ids.map((id) => {
+        const t = termOf(id);
+        if (!t) return `<tr class="table-danger"><td><code>${esc(id)}</code></td><td colspan="2">Missing in terms.json. Add it there, or remove it from this list.</td></tr>`;
+        const retired = t.status === 'retired' ? ` <span class="badge text-bg-danger">retired, use ${esc(t.replacedBy)}</span>` : '';
+        return `<tr id="term-${esc(id)}"><td class="text-nowrap"><a href="${esc(termsPage())}#${esc(id)}" target="_blank" rel="noopener" aria-label="${esc(t.term)} (definition, opens in a new tab)">${esc(t.term)}</a>${retired}</td>
+          <td>${inline(t.definition)}</td><td class="small">${esc(t.uiLabel)}</td></tr>`;
+      }).join('')}</tbody></table></div>`;
+  },
+
+  data() {
+    const s = state.spec;
+    const dash = '<span class="text-body-secondary">–</span>';
+    return (s.dataKinds ?? []).map((k) => {
+      const items = (s.data ?? []).filter((d) => d.kind === k.id);
+      const derived = k.derived ?? [];
+      const rows = items.map((d) => {
+        const users = dataUsers(d.id);
+        return `<tr id="${esc(d.id)}" class="filterable" data-search="${searchText(d.id, k.label, Object.values(d.values ?? {}))}">
+          <td class="c-id"><a class="idlabel permalink" href="#${esc(d.id)}" title="Permalink to ${esc(d.id)}">${esc(d.id)}</a>${testOnlyBadge(d)}</td>
+          ${k.columns.map((c) => `<td${(d.values?.[c] ?? '').length <= 12 ? ' class="text-nowrap"' : ''}>${d.values?.[c] ? inline(d.values[c]) : dash}</td>`).join('')}
+          ${derived.map((dc) => `<td>${idLinks(derivedIds(d, dc))}</td>`).join('')}
+          <td class="small">${users.length ? usedByHtml(d.id, users) : dash}</td>
+          <td>${editBtn('data', d.id)}</td></tr>`;
+      }).join('');
+      return `<div id="data-kind-${esc(k.id)}" class="rule-group mb-3" data-group>
+        <div class="sub-head d-flex justify-content-between align-items-center gap-2 pt-2">
+          <h3 class="h6 mb-1">${esc(k.title)}</h3>
+          <span class="text-nowrap">${editBtn('dataKinds', k.id)} ${addBtn('data', k.label, { kind: k.id })}</span></div>
+        <div class="table-responsive"><table class="table table-sm table-bordered data-table"><thead><tr><th>${esc(k.label)}</th>
+          ${k.columns.map((c) => `<th>${esc(c)}</th>`).join('')}${derived.map((dc) => `<th title="Derived from the column ${esc(dc.column)} of the ${esc(state.dataKinds.get(dc.kind)?.title ?? dc.kind)}">${esc(dc.title)}</th>`).join('')}
+          <th title="Rules, examples, ACs, test cases and other items that mention it">Used by</th><th></th></tr></thead>
+          <tbody>${rows || `<tr><td colspan="${k.columns.length + derived.length + 3}" class="text-body-secondary">None yet.</td></tr>`}</tbody></table></div>
+      </div>`;
+    }).join('');
+  },
+
+  rules() {
+    const s = state.spec;
+    const usedBy = (exId) => s.acceptanceCriteria.filter((a) => a.examples.includes(exId)).map((a) => a.id);
+    const rulesOf = (g) => s.rules.filter((r) => r.group === g.id);
+    return s.ruleGroups.map((g) => `<div id="group-${esc(g.id)}" class="rule-group mb-3" data-group>
+      <div class="sub-head d-flex justify-content-between align-items-center gap-2 pt-2">
+        <h3 class="h6 mb-1"><a class="permalink" href="#group-${esc(g.id)}" title="Permalink to ${esc(g.id)}">${esc(g.id)}</a> ${esc(g.title)} ${g.story ? `<span class="small fw-normal">(${linkify(esc(g.story))})</span>` : ''}</h3>
+        <span class="text-nowrap">${editBtn('ruleGroups', g.id)} ${addBtn('rules', 'Rule', { group: g.id })}</span></div>
+      ${g.note ? `<div class="small text-body-secondary mb-2">${md(g.note)}</div>` : ''}
+      ${rulesOf(g).map((r) => {
+        const exs = s.examples.filter((e) => e.rule === r.id);
+        const acs = s.acceptanceCriteria.filter((a) => a.rules.includes(r.id)).map((a) => a.id);
+        return `<div class="item rule filterable" id="${esc(r.id)}" data-search="${searchText(r.id, r.statement, exs.map((e) => [e.id, e.text]))}">
+          <div class="d-flex justify-content-between gap-2"><h4><a class="idlabel permalink" href="#${esc(r.id)}" title="Permalink to ${esc(r.id)}">${esc(r.id)}</a></h4>${editBtn('rules', r.id)}</div>
+          <div class="mt-1">${md(r.statement)}</div>
+          <details class="examples"${exs.length <= 1 ? ' open' : ''}><summary>${exs.length} example(s)</summary>
+            ${exs.map((e) => `<div class="example" id="${esc(e.id)}"><div class="d-flex justify-content-between gap-2">
+                <div><a class="idlabel permalink" href="#${esc(e.id)}" title="Permalink to ${esc(e.id)}">${esc(e.id)}</a> ${inline(e.text)}</div>${editBtn('examples', e.id)}</div>
+                <div class="refs">Used by: ${idLinks(usedBy(e.id))}</div></div>`).join('')}
+            <div class="mt-1">${addBtn('examples', 'Example', { rule: r.id })}</div>
+          </details>
+          <div class="refs">ACs: ${idLinks(acs)}</div>
+        </div>`;
+      }).join('')}
+    </div>`).join('');
+  },
+
+  acceptanceCriteria() {
+    const s = state.spec;
+    return s.stories.map((st) => {
+      const acs = s.acceptanceCriteria.filter((a) => a.story === st.id);
+      const counts = L.AC_STATUSES.map((x) => [x.id, acs.filter((a) => a.status === x.id).length]).filter(([, n]) => n);
+      return `<div class="story-box" id="${esc(st.id)}" data-story>
+        <div class="story-head sub-head d-flex justify-content-between gap-2 align-items-start">
+          <h3 class="h6 mb-1"><a class="idlabel permalink" href="#${esc(st.id)}" title="Permalink to ${esc(st.id)}">${esc(st.id)}</a> ${esc(st.title)}</h3>
+          <span class="text-nowrap">${editBtn('stories', st.id)} ${addBtn('acceptanceCriteria', 'AC', { story: st.id })}</span></div>
+        <div class="story-intro">
+          <div class="fst-italic">${inline(st.text)}</div>
+          ${st.setup ? `<div class="small mt-1"><strong>Setup:</strong> ${inline(st.setup)}</div>` : ''}
+          <div class="small mt-1 d-flex flex-wrap gap-1 align-items-center">${counts.map(([id, n]) => statusBadge(id) + `<span class="me-2">${n}</span>`).join('')}
+            ${st.readiness ? `<span class="text-body-secondary">Readiness: ${esc(st.readiness)}</span>` : ''}</div>
+        </div>
+        <div class="story-body">${acs.map(acCard).join('') || '<p class="small text-body-secondary mb-0">No ACs yet.</p>'}</div>
+      </div>`;
+    }).join('');
+  },
+
+  testCases() {
+    const tcs = state.spec.testCases;
+    const STATUS_CLASS = { draft: 'text-bg-secondary', ready: 'text-bg-info', passed: 'text-bg-success', failed: 'text-bg-danger', blocked: 'text-bg-warning' };
+    return tcs.map((t) => `<div class="item filterable" id="${esc(t.id)}" data-search="${searchText(t.id, t.title, t.steps, t.notes, t.acs)}">
+        <div class="d-flex justify-content-between gap-2"><h4><a class="idlabel permalink" href="#${esc(t.id)}" title="Permalink to ${esc(t.id)}">${esc(t.id)}</a> ${inline(t.title)}
+          <span class="badge ${STATUS_CLASS[t.status] ?? 'text-bg-secondary'} ms-1">${esc(t.status)}</span></h4>${editBtn('testCases', t.id)}</div>
+        <div class="meta-grid"><span class="lbl">ACs</span><span>${idLinks(t.acs)}</span>
+          <span class="lbl">Automation</span><span>${t.automation ? `<code>${esc(t.automation)}</code>` : 'manual'}</span></div>
+        ${isGherkin(t.steps) ? t.steps.split(/\n(?=Scenario)/).map(gherkin).join('') : md(t.steps)}
+        ${md(t.notes)}${refsLine(t.id)}
+      </div>`).join('');
+  },
+
+  limitations() {
+    return state.spec.limitations.map((k) => `<div class="item filterable" id="${esc(k.id)}" data-search="${searchText(k.id, k.title, k.text, k.followUp)}">
+        <div class="d-flex justify-content-between gap-2"><h4><a class="idlabel permalink" href="#${esc(k.id)}" title="Permalink to ${esc(k.id)}">${esc(k.id)}</a> ${inline(k.title)}</h4>${editBtn('limitations', k.id)}</div>
+        <div class="mt-1">${md(k.text)}</div>
+        <div class="meta-grid"><span class="lbl">Affects</span><span>${idLinks(k.affects)}</span>
+          <span class="lbl">Follow-up</span><span>${inline(k.followUp)}</span></div>${refsLine(k.id)}
+      </div>`).join('');
+  },
+
+  assumptions() {
+    return `<div class="table-responsive"><table class="table table-sm"><thead><tr><th>ID</th><th>Assumption</th><th>Affects</th><th></th></tr></thead><tbody>
+      ${state.spec.assumptions.map((a) => `<tr id="${esc(a.id)}" class="filterable" data-search="${searchText(a.id, a.text)}"><td class="text-nowrap"><a class="idlabel permalink" href="#${esc(a.id)}" title="Permalink to ${esc(a.id)}">${esc(a.id)}</a></td>
+        <td>${inline(a.text)}</td><td>${idLinks(a.affects)}</td><td>${editBtn('assumptions', a.id)}</td></tr>`).join('')}
+      </tbody></table></div>`;
+  },
+
+  risks() {
+    const cls = { High: 'text-bg-danger', Medium: 'text-bg-warning', Low: 'text-bg-secondary' };
+    return `<div class="table-responsive"><table class="table table-sm"><thead><tr><th>ID</th><th>Risk</th><th title="Likelihood">L</th><th title="Impact">I</th><th>Level</th><th>ACs</th><th>Test approach</th><th></th></tr></thead><tbody>
+      ${state.spec.risks.map((r) => `<tr id="${esc(r.id)}" class="filterable" data-search="${searchText(r.id, r.text, r.testApproach)}"><td class="text-nowrap"><a class="idlabel permalink" href="#${esc(r.id)}" title="Permalink to ${esc(r.id)}">${esc(r.id)}</a></td>
+        <td>${inline(r.text)}</td><td>${r.likelihood}</td><td>${r.impact}</td><td><span class="badge ${cls[riskLevel(r)]}">${riskLevel(r)}</span></td>
+        <td>${idLinks(r.acs)}</td><td>${inline(r.testApproach) || '–'}</td><td>${editBtn('risks', r.id)}</td></tr>`).join('')}
+      </tbody></table></div>`;
+  },
+
+  traceability() {
+    const s = state.spec;
+    const acsOf = (st) => s.acceptanceCriteria.filter((a) => a.story === st.id);
+    const story = `<h3 class="md-h">Story → AC</h3>${tbl(['Story', 'ACs', 'Status', 'Readiness'], s.stories.map((st) => {
+      const acs = acsOf(st);
+      const sum = L.AC_STATUSES.map((x) => [x, acs.filter((a) => a.status === x.id).length]).filter(([, n]) => n).map(([x, n]) => `${statusBadge(x.id)} ${n}`).join(' ');
+      return [`${linkify(esc(st.id))} ${esc(st.title)}`, idLinks(acs.map((a) => a.id)), sum, esc(st.readiness)];
+    }))}<p class="small">${s.acceptanceCriteria.length} ACs in total.</p>`;
+    const rules = `<h3 class="md-h">Rule → examples → ACs</h3>${tbl(['Rule', 'Examples', 'ACs'], s.rules.map((r) => [linkify(esc(r.id)),
+      idLinks(s.examples.filter((e) => e.rule === r.id).map((e) => e.id)), idLinks(s.acceptanceCriteria.filter((a) => a.rules.includes(r.id)).map((a) => a.id))]))}`;
+    const risk = `<h3 class="md-h">Risk → ACs</h3>${tbl(['Risk', 'Level', 'ACs'], s.risks.map((r) => [linkify(esc(r.id)), riskLevel(r), idLinks(r.acs)]))}`;
+    const kl = `<h3 class="md-h">Known limitation → affected items</h3>${tbl(['Limitation', 'Affects'], s.limitations.map((k) => [linkify(esc(k.id)), idLinks(k.affects)]))}`;
+    const covered = (a) => s.testCases.filter((t) => t.acs.includes(a.id)).map((t) => t.id);
+    const uncovered = s.acceptanceCriteria.filter((a) => !covered(a).length).length;
+    const tcs = `<h3 class="md-h">AC → test cases</h3><p class="small">${s.acceptanceCriteria.length - uncovered} of ${s.acceptanceCriteria.length} ACs have at least one test case.</p>
+      ${s.testCases.length ? tbl(['AC', 'Status', 'Test cases'], s.acceptanceCriteria.map((a) => [linkify(esc(a.id)), statusBadge(a.status), idLinks(covered(a))])) : ''}`;
+    return story + rules + risk + kl + tcs;
+  },
+
+  questions() {
+    const table = (qs) => `<div class="table-responsive"><table class="table table-sm"><thead><tr><th>ID</th><th>Question</th><th>Blocks</th><th>Asked to</th><th>Status</th><th></th></tr></thead><tbody>
+      ${qs.map((q) => `<tr id="${esc(q.id)}" class="filterable" data-search="${searchText(q.id, q.text, q.blocks, q.resolution)}"><td class="text-nowrap"><a class="idlabel permalink" href="#${esc(q.id)}" title="Permalink to ${esc(q.id)}">${esc(q.id)}</a></td>
+        <td>${inline(q.text)}${q.resolution ? `<div class="small mt-1"><strong>Resolution:</strong> ${inline(q.resolution)}</div>` : ''}</td>
+        <td>${inline(q.blocks)}</td><td>${esc(q.askedTo)}</td>
+        <td><span class="badge ${q.status === 'open' ? 'text-bg-warning' : 'text-bg-success'}">${esc(q.status)}</span></td><td>${editBtn('questions', q.id)}</td></tr>`).join('')}
+      </tbody></table></div>`;
+    const qs = state.spec.questions;
+    const resolved = qs.filter((q) => q.status !== 'open');
+    return table(qs.filter((q) => q.status === 'open'))
+      + `<div id="resolved-questions" class="rule-group" data-group><div class="sub-head pt-2"><h3 class="h6 mb-1">Resolved questions</h3></div>
+        ${resolved.length ? table(resolved) : '<p class="small text-body-secondary">None.</p>'}</div>`;
+  },
+
+  decisions() {
+    return `<div class="table-responsive"><table class="table table-sm"><thead><tr><th>Date</th><th>Decision</th><th>Affected IDs</th><th></th></tr></thead><tbody>
+      ${state.spec.decisions.map((d, i) => `<tr class="filterable" data-search="${searchText(d.text, d.refs)}"><td class="text-nowrap">${esc(d.date)}</td><td>${inline(d.text)}</td>
+        <td>${idLinks(d.refs)}</td><td>${editBtn('decisions', i)}</td></tr>`).join('')}
+      </tbody></table></div>`;
+  },
+
+  withdrawn() {
+    return `<div class="table-responsive"><table class="table table-sm"><thead><tr><th>IDs</th><th>Reason</th><th></th></tr></thead><tbody>
+      ${state.spec.withdrawn.map((w, i) => `<tr><td>${w.ids.map((x) => `<span class="withdrawn-id">${esc(x)}</span>`).join(', ')}</td><td>${inline(w.reason)}</td>
+        <td>${editBtn('withdrawn', i)}</td></tr>`).join('')}
+      </tbody></table></div>`;
+  },
+};
+const tbl = (head, rows) => `<div class="table-responsive"><table class="table table-sm table-bordered"><thead><tr>${head.map((h) => `<th>${h}</th>`).join('')}</tr></thead>
+  <tbody>${rows.map((r) => `<tr>${r.map((c) => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+
+function acCard(a) {
+  const feature = `Feature: ${a.id} ${a.title}\n\n` + a.scenarios.join('\n\n');
+  return `<div class="item ac filterable" id="${esc(a.id)}" data-status="${esc(a.status)}"
+      data-search="${searchText(a.id, a.title, a.statusNote, a.description, a.scenarios, a.notes, a.rules, a.examples)}">
+    <div class="d-flex justify-content-between gap-2 align-items-start">
+      <h4><a class="idlabel permalink" href="#${esc(a.id)}" title="Permalink to ${esc(a.id)}">${esc(a.id)}</a> ${inline(a.title)}</h4>
+      <span class="text-nowrap">${statusBadge(a.status)} ${editBtn('acceptanceCriteria', a.id)}</span></div>
+    <div class="meta-grid">
+      ${a.statusNote ? `<span class="lbl">Status</span><span>${inline(a.statusNote)}</span>` : ''}
+      <span class="lbl">Rules</span><span>${idLinks(a.rules)}</span>
+      <span class="lbl">Examples</span><span>${idLinks(a.examples)}</span>
+    </div>
+    ${md(a.description)}
+    ${a.scenarios.map(gherkin).join('')}
+    ${md(a.notes)}
+    <div class="d-flex justify-content-between align-items-end">${refsLine(a.id) || '<span></span>'}
+      ${a.scenarios.length ? `<button type="button" class="btn btn-link btn-edit" data-copy="${esc(feature)}" title="Copy the scenarios as a .feature file">Copy Gherkin</button>` : ''}</div>
+  </div>`;
+}
+
+// ---------- page ----------
+function listCount(list) {
+  const s = state.spec;
+  switch (list) {
+    case 'terms': return s.terms.length;
+    case 'data': return (s.data ?? []).length;
+    case 'questions': return s.questions.filter((q) => q.status === 'open').length;
+    case 'withdrawn': return L.expandIds(s.withdrawn.flatMap((w) => w.ids)).length;
+    case 'meta': case 'traceability': case undefined: return '';
+    default: return (s[list] ?? []).length;
+  }
+}
+
+function renderOverview() {
+  const s = state.spec;
+  const prefixes = (list) => [...new Set((s[list] ?? []).map((x) => x.id.replace(/\d+[a-z]?$/, '')))].map(esc).join(', ');
+  const card = (n, label, href, list) => {
+    const pfx = list ? prefixes(list) : '';
+    return `<div class="col"><a class="card count-card text-decoration-none text-body" href="#${href}"${pfx ? ` title="IDs start with ${pfx}"` : ''}><div class="lab">${label}</div><div class="num">${n}</div>${pfx ? `<div class="pfx">${pfx}</div>` : ''}</a></div>`;
+  };
+  const secOf = (list) => s.sections.find((x) => x.list === list)?.id ?? 'overview';
+  const chips = L.AC_STATUSES.map((x) => [x, s.acceptanceCriteria.filter((a) => a.status === x.id).length]).filter(([, n]) => n)
+    .map(([x, n]) => `<button type="button" class="badge status-chip st-${x.id} ${state.filterStatus === x.id ? 'active' : ''}" data-filter-status="${x.id}">${esc(x.label)}: ${n}</button>`).join('');
+  $('overview').innerHTML = `<div class="sec-head d-flex justify-content-between align-items-center"><h2 class="h4 mb-0">${esc(s.meta.key)} — ${esc(s.meta.title)}</h2>
+      <span><span class="badge text-bg-secondary">v${esc(s.meta.version)}</span> <span class="badge text-bg-warning">${esc(s.meta.status)}</span></span></div>
+    <div class="row row-cols-3 row-cols-md-5 row-cols-xl-10 g-2 mb-3">
+      ${card(s.stories.length, 'Stories', secOf('acceptanceCriteria'), 'stories')}${card(s.acceptanceCriteria.length, 'Acceptance criteria', secOf('acceptanceCriteria'), 'acceptanceCriteria')}
+      ${card(s.rules.length, 'Rules', secOf('rules'), 'rules')}${card(s.examples.length, 'Examples', secOf('rules'), 'examples')}
+      ${card(s.testCases.length, 'Test cases', secOf('testCases'), 'testCases')}${card(s.limitations.length, 'Known limitations', secOf('limitations'), 'limitations')}
+      ${card(s.risks.length, 'Risks', secOf('risks'), 'risks')}${card(s.assumptions.length, 'Assumptions', secOf('assumptions'), 'assumptions')}
+      ${card(s.questions.filter((q) => q.status === 'open').length, 'Open questions', secOf('questions'), 'questions')}${card(s.terms.length, 'Terms', secOf('terms'))}
+    </div>
+    <div class="small text-body-secondary mb-1">AC status (click to filter)</div>
+    <div class="d-flex flex-wrap gap-2">${chips}</div>`;
+}
+
+function renderToc() {
+  const s = state.spec;
+  const sub = (sec) => {
+    if (sec.list === 'acceptanceCriteria') return s.stories.map((st) => `<a class="nav-link lvl2" href="#${esc(st.id)}"><span>${esc(st.id)} ${esc(st.title)}</span><span>${s.acceptanceCriteria.filter((a) => a.story === st.id).length}</span></a>`).join('');
+    if (sec.list === 'questions') return `<a class="nav-link lvl2" href="#resolved-questions"><span>Resolved questions</span><span>${s.questions.filter((q) => q.status !== 'open').length}</span></a>`;
+    if (sec.list === 'data') return (s.dataKinds ?? []).map((k) => `<a class="nav-link lvl2" href="#data-kind-${esc(k.id)}"><span>${esc(k.title)}</span><span>${(s.data ?? []).filter((d) => d.kind === k.id).length}</span></a>`).join('');
+    if (sec.list === 'rules') return s.ruleGroups.map((g) => `<a class="nav-link lvl2" href="#group-${esc(g.id)}"><span>${esc(g.id)} ${esc(g.title)}</span><span>${s.rules.filter((r) => r.group === g.id).length}</span></a>`).join('');
+    return '';
+  };
+  $('toc').innerHTML = `<a class="nav-link" href="#overview"><span>Overview</span></a>`
+    + s.sections.map((sec) => `<a class="nav-link" href="#${esc(sec.id)}"><span>${esc(sec.title)}</span><span class="text-body-secondary">${listCount(sec.list)}</span></a>${sub(sec)}`).join('')
+    + `<a class="nav-link" href="#changelog"><span>Changelog</span></a>`;
+}
+
+function render() {
+  const s = state.spec;
+  derive();
+  document.title = `${s.meta.key} — ${s.meta.title}`;
+  $('brand').textContent = `${s.meta.key} — ${s.meta.title}`;
+  renderOverview();
+  renderToc();
+  $('sections').innerHTML = s.sections.map((sec) => `<section id="${esc(sec.id)}" class="spec-section">
+      <div class="sec-head d-flex justify-content-between align-items-center gap-2"><h2>${esc(sec.title)}</h2>
+        <span class="text-nowrap">${editBtn('sections', sec.id, 'Edit section')} ${SECTION_ADD[sec.list]?.() ?? ''}</span></div>
+      ${md(sec.body)}${sec.list && RENDER[sec.list] ? RENDER[sec.list]() : ''}${md(sec.after)}
+    </section>`).join('');
+  $('changes').innerHTML = s.changelog.map((c, i) => ({ c, i })).reverse().map(({ c, i }) => `<tr class="${i >= state.savedChangelogLength ? 'unsaved-row' : ''}">
+      <td class="text-nowrap" title="${esc(c.date)}">${esc(shortDate(c.date))}</td><td>${esc(c.author)}</td><td>${esc(c.action)}</td><td>${c.ref ? linkify(esc(c.ref)) : ''}</td>
+      <td>${inline(c.summary)}${i >= state.savedChangelogLength ? ' <span class="badge text-bg-warning">unsaved</span>' : ''}</td></tr>`).join('');
+  $('dlTerms').innerHTML = (state.terms?.terms ?? []).map((t) => `<option value="${esc(t.id)}">${esc(t.term)}</option>`).join('');
+
+  const { errors, warnings } = L.check(s, state.terms);
+  const list = (arr) => `<ul class="mb-0">${arr.map((p) => `<li>${linkify(esc(p))}</li>`).join('')}</ul>`;
+  $('problems').classList.toggle('d-none', !errors.length);
+  $('problems').innerHTML = errors.length ? `<strong>${errors.length} problem(s). Fix them before saving:</strong>${list(errors)}` : '';
+  $('warnings').classList.toggle('d-none', !warnings.length);
+  $('warnings').innerHTML = warnings.length ? `<details${warnings.length <= 5 ? ' open' : ''}><summary class="fw-semibold text-body">${warnings.length} warning(s)</summary>${list(warnings)}</details>`
+    + (!state.terms ? '<button type="button" class="btn btn-sm btn-outline-secondary mt-2" data-action="load-terms">Load terms.json</button>' : '') : '';
+  renderTermsStatus();
+  addCopyLinks();
+  applyFilters();
+}
+
+const TICK_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="currentColor" stroke="none"/><path d="M7 12.5l3.5 3.5L17 9" stroke="#fff"/></svg>';
+const LINK_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7.07 0l-3 3A5 5 0 0 0 11 21.07l1.5-1.5"/></svg>';
+
+/** Adds a copy-permalink button after every permalink label and to each section heading. */
+function addCopyLinks() {
+  const make = (id) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'copy-link';
+    b.dataset.copyLink = id;
+    b.dataset.tip = 'Copy link';
+    b.setAttribute('aria-label', 'Copy link to ' + id);
+    b.innerHTML = LINK_ICON;
+    return b;
+  };
+  document.querySelectorAll('#sections a.permalink, #overview a.permalink').forEach((a) => {
+    if (a.nextElementSibling?.classList.contains('copy-link')) return;
+    a.after(make(decodeURIComponent(a.hash.slice(1))));
+  });
+  document.querySelectorAll('#sections .md-h[id]').forEach((h) => {
+    if (!h.querySelector('.copy-link')) h.append(make(h.id));
+  });
+  document.querySelectorAll('#sections section.spec-section[id] > .sec-head > h2').forEach((h) => {
+    h.append(make(h.closest('section').id));
+  });
+}
+
+function renderTermsStatus() {
+  const b = $('termsStatus');
+  if (!state.spec) { b.classList.add('d-none'); return; }
+  b.classList.remove('d-none');
+  if (!state.terms) { b.className = 'badge border-0 d-none d-md-inline text-bg-warning'; b.textContent = 'terms.json not loaded'; return; }
+  const missing = state.spec.terms.filter((id) => !termOf(id)).length;
+  b.className = 'badge border-0 d-none d-md-inline ' + (missing ? 'text-bg-danger' : 'text-bg-success');
+  b.textContent = missing ? `terms: ${missing} missing` : `terms: ${state.terms.terms.length} loaded`;
+  b.title = `${state.termsName}. Click to load another terms.json.`;
+}
+
+// ---------- filtering ----------
+function applyFilters() {
+  const q = $('search').value.trim().toLowerCase();
+  const st = state.filterStatus;
+  const fids = state.filterIds;
+  const active = !!(q || st || fids);
+  document.querySelectorAll('.filterable').forEach((el) => {
+    const isAc = el.classList.contains('ac');
+    const usesIds = !fids || fids.ids.has(el.id) || [...el.querySelectorAll('[id]')].some((x) => fids.ids.has(x.id));
+    const ok = (!q || el.dataset.search.includes(q)) && (!st || (isAc && el.dataset.status === st)) && usesIds;
+    el.classList.toggle('hidden-by-filter', !ok);
+    if (ok && q && el.classList.contains('rule')) el.querySelectorAll('details').forEach((d) => { d.open = true; });
+  });
+  const anyVisible = (el) => !!el.querySelector('.filterable:not(.hidden-by-filter)');
+  document.querySelectorAll('[data-story], [data-group]').forEach((el) => el.classList.toggle('hidden-by-filter', active && !anyVisible(el)));
+  document.querySelectorAll('#sections > section').forEach((el) => el.classList.toggle('hidden-by-filter', active && !anyVisible(el)));
+  $('changelog').classList.toggle('hidden-by-filter', active);
+  const hits = [...document.querySelectorAll('.filterable:not(.hidden-by-filter)')];
+  const shown = hits.length;
+  const where = [...document.querySelectorAll('#sections > section:not(.hidden-by-filter)')]
+    .map((sec) => [sec, sec.querySelectorAll('.filterable:not(.hidden-by-filter)').length])
+    .filter(([, n]) => n)
+    .map(([sec, n]) => `<a href="#${esc(sec.id)}">${esc(sec.querySelector('h2').textContent)}</a> (${n})`);
+  $('filterBanner').classList.toggle('d-none', !active);
+  $('filterText').innerHTML = active ? `${shown} item(s) match${q ? ` "${esc(q)}"` : ''}${st ? `, status ${esc(STATUS_LABEL[st])}` : ''}${fids ? `, mentioning ${esc(fids.label)}` : ''}${where.length ? ': ' + where.join(', ') : ''}.` : '';
+  $('hitNav').classList.toggle('d-none', !shown);
+  $('btnClearFilters').classList.toggle('ms-auto', !shown);
+  state.hits = hits;
+  if (q !== state.hitQuery) { state.hitIndex = -1; state.hitQuery = q; }
+  state.hitIndex = Math.min(state.hitIndex, shown - 1);
+  showHitPos();
+  highlightHits(q, hits);
+  syncQueryParam(q);
+  updateStickyVars();
+  queueSpy();
+}
+function clearFilters() { $('search').value = ''; state.filterStatus = ''; state.filterIds = null; renderOverview(); applyFilters(); }
+
+/** Marks every occurrence of the query inside the visible items with the CSS Custom Highlight API (no DOM changes), up to 2000 of them. */
+function highlightHits(q, items) {
+  if (!window.CSS?.highlights) return;
+  CSS.highlights.delete('search-hit');
+  if (!q) return;
+  const ranges = [];
+  for (const el of items) {
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    for (let n = walker.nextNode(); n && ranges.length < 2000; n = walker.nextNode()) {
+      const text = n.data.toLowerCase();
+      for (let i = text.indexOf(q); i >= 0 && ranges.length < 2000; i = text.indexOf(q, i + q.length)) {
+        const r = new Range(); r.setStart(n, i); r.setEnd(n, i + q.length); ranges.push(r);
+      }
+    }
+  }
+  if (ranges.length) CSS.highlights.set('search-hit', new Highlight(...ranges));
+}
+
+/** Keeps the search text in the address bar as ?q=, next to ?spec=, so a search can be shared and survives a reload. */
+function syncQueryParam(q) {
+  const u = new URL(location.href);
+  if (q) u.searchParams.set('q', q); else u.searchParams.delete('q');
+  if (u.href !== location.href) history.replaceState(history.state, '', u);
+}
+
+function showHitPos() {
+  $('hitPos').textContent = state.hits.length ? `${state.hitIndex + 1 || '–'}/${state.hits.length}` : '';
+}
+
+/** Scrolls to the next (dir 1) or previous (dir -1) visible match and flashes it. */
+function stepHit(dir) {
+  const n = state.hits.length;
+  if (!n) return;
+  state.hitIndex = (state.hitIndex + dir + n) % n;
+  showHitPos();
+  const el = state.hits[state.hitIndex];
+  el.querySelectorAll('details').forEach((d) => { d.open = true; });
+  el.scrollIntoView({ block: 'start', behavior: 'instant' });
+  el.classList.add('flash');
+  setTimeout(() => el.classList.remove('flash'), 1500);
+}
+
+function goTo(id) {
+  if (!id) return;
+  let el = document.getElementById(id);
+  if (el && el.closest('.hidden-by-filter')) { clearFilters(); el = document.getElementById(id); }
+  if (!el) return;
+  const det = el.closest('details');
+  if (det) det.open = true;
+  el.scrollIntoView({ block: 'start', behavior: 'instant' });
+  const target = el.tagName === 'TR' ? el : el.closest('.item, .example') ?? el;
+  target.classList.add('flash');
+  setTimeout(() => target.classList.remove('flash'), 1500);
+}
+
+// ---------- hover preview ----------
+function peekHtml(el) {
+  if (el.dataset.term) {
+    const t = termOf(el.dataset.term);
+    if (!state.terms) return `<strong>${esc(el.dataset.term)}</strong><div class="small">Load terms.json to see the definition.</div>`;
+    if (!t) return `<strong>${esc(el.dataset.term)}</strong><div class="small text-danger">Missing in terms.json.</div>`;
+    return `<strong>${esc(t.term)}</strong>${t.status === 'retired' ? ' <span class="badge text-bg-danger">retired</span>' : ''}<div>${inline(t.definition)}</div>`
+      + (t.uiLabel ? `<div class="small text-body-secondary mt-1">UI: ${esc(t.uiLabel)}</div>` : '');
+  }
+  const id = el.dataset.ref;
+  const d = state.data.get(id);
+  if (d) {
+    const k = state.dataKinds.get(d.kind);
+    const rows = (k?.columns ?? Object.keys(d.values ?? {})).filter((c) => d.values?.[c]).map((c) => `<span class="lbl">${esc(c)}</span><span>${inline(d.values[c])}</span>`)
+      .concat((k?.derived ?? []).map((dc) => [dc.title, derivedIds(d, dc)]).filter(([, ids]) => ids.length).map(([t, ids]) => `<span class="lbl">${esc(t)}</span><span>${idLinks(ids)}</span>`));
+    const n = dataUsers(id).length;
+    return `<div><span class="text-body-secondary small">${esc(k?.label ?? d.kind)}</span> <strong>${esc(id)}</strong>${testOnlyBadge(d)}</div>
+      ${rows.length ? `<div class="meta-grid">${rows.join('')}</div>` : ''}<div class="refs">Used by ${n} item(s). Click to see them.</div>`;
+  }
+  if (state.withdrawn.has(id)) {
+    const w = state.spec.withdrawn.find((x) => L.expandIds(x.ids).includes(id));
+    return `<strong>${esc(id)}</strong> <span class="badge text-bg-danger">withdrawn</span><div class="small">${inline(w?.reason)}</div>`;
+  }
+  const hit = state.ids.get(id);
+  if (!hit) return '';
+  const it = hit.item;
+  const body = it.title && hit.collection !== 'limitations' ? it.title : it.statement ?? it.text ?? it.title ?? '';
+  const extra = hit.collection === 'acceptanceCriteria' ? ' ' + statusBadge(it.status) : hit.collection === 'limitations' ? ` <strong>${inline(it.title)}</strong>` : '';
+  // Rules and examples in full, so the data and IDs they mention can be hovered too.
+  const text = hit.collection === 'rules' || hit.collection === 'examples' ? md(body) : inline(short(plain(body)));
+  return `<div><span class="text-body-secondary small">${LABEL[hit.collection]}</span> <strong>${esc(id)}</strong>${extra}</div><div class="small">${text}</div>`;
+}
+// Popups stack: a link inside a popup opens the next one. Each popup stays open while the mouse is over it,
+// over its link, or over a popup opened from it.
+const peeks = []; // [{ anchor, popup }], index = depth
+let peekOver = null, peekOpenTimer = null, peekPruneTimer = null;
+
+function closePeeks(depth) {
+  while (peeks.length > depth) peeks.pop().popup.remove();
+}
+function prunePeeks() {
+  let keep = peeks.length - 1;
+  while (keep >= 0 && !(peekOver && (peeks[keep].popup.contains(peekOver) || peeks[keep].anchor.contains(peekOver)))) keep--;
+  closePeeks(keep + 1);
+}
+function openPeek(anchor, depth, html) {
+  closePeeks(depth);
+  const p = document.createElement('div');
+  p.className = 'peek card card-body p-2';
+  p.style.zIndex = 2000 + depth;
+  p.innerHTML = html;
+  document.body.append(p);
+  const r = anchor.getBoundingClientRect();
+  const top = r.bottom + 6 + p.offsetHeight > innerHeight ? r.top - p.offsetHeight - 6 : r.bottom + 6;
+  p.style.top = Math.max(4, top) + 'px';
+  p.style.left = Math.max(4, Math.min(r.left, innerWidth - p.offsetWidth - 8)) + 'px';
+  peeks.push({ anchor, popup: p });
+}
+document.addEventListener('mouseover', (e) => {
+  peekOver = e.target;
+  clearTimeout(peekPruneTimer);
+  peekPruneTimer = setTimeout(prunePeeks, 200);
+  clearTimeout(peekOpenTimer);
+  const el = e.target.closest('[data-ref], [data-term]');
+  if (!el || !state.spec || peeks.some((x) => x.anchor === el)) return;
+  const html = peekHtml(el);
+  if (!html) return;
+  const depth = peeks.findIndex((x) => x.popup.contains(el)) + 1;
+  peekOpenTimer = setTimeout(() => { if (el.contains(peekOver)) openPeek(el, depth, html); }, 250);
+});
+document.addEventListener('mouseout', (e) => {
+  if (e.relatedTarget) return;
+  peekOver = null; // left the window
+  clearTimeout(peekOpenTimer);
+  closePeeks(0);
+});
+addEventListener('scroll', () => closePeeks(0), { passive: true });
+
+// ---------- IndexedDB: remember file handles per page location ----------
+function idb() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open('sbe-spec', 1);
+    req.onupgradeneeded = () => req.result.createObjectStore('handles');
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function idbGet(key) {
+  try {
+    const db = await idb();
+    return await new Promise((res, rej) => { const r = db.transaction('handles').objectStore('handles').get(key); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+  } catch { return undefined; }
+}
+async function idbSet(key, value) {
+  try {
+    const db = await idb();
+    await new Promise((res, rej) => { const tx = db.transaction('handles', 'readwrite'); tx.objectStore('handles').put(value, key); tx.oncomplete = res; tx.onerror = () => rej(tx.error); });
+  } catch { /* remembering the file is a convenience only */ }
+}
+async function idbDelete(key) {
+  try {
+    const db = await idb();
+    await new Promise((res, rej) => { const tx = db.transaction('handles', 'readwrite'); tx.objectStore('handles').delete(key); tx.oncomplete = res; tx.onerror = () => rej(tx.error); });
+  } catch { /* nothing to forget */ }
+}
+const specKey = () => 'spec:' + location.pathname;
+const termsKey = () => 'terms:' + location.pathname;
+const JSON_TYPES = [{ description: 'JSON', accept: { 'application/json': ['.json'] } }];
+
+// ---------- loading and saving the spec ----------
+function load(text, source, handle, name) {
+  const spec = JSON.parse(text);
+  if (!spec.meta || !Array.isArray(spec.acceptanceCriteria)) throw new Error('This is not a spec file (it has no "meta" or "acceptanceCriteria").');
+  for (const c of [...L.ID_COLLECTIONS, 'ruleGroups', 'decisions', 'withdrawn', 'changelog', 'sections', 'terms']) spec[c] ??= [];
+  state.spec = spec;
+  state.diskText = text;
+  state.source = source;
+  state.handle = handle ?? null;
+  state.fileName = name ?? state.fileName;
+  state.savedChangelogLength = spec.changelog.length;
+  setDirty(false);
+  $('emptyState').classList.add('d-none');
+  $('app').classList.remove('d-none');
+  render();
+  if (location.hash) setTimeout(() => goTo(decodeURIComponent(location.hash.slice(1))), 50);
+}
+
+async function pickFile() {
+  if (state.dirty && !confirm('You have unsaved changes. Discard them and open another file?')) return;
+  if (!hasFsa) { $('filePicker').click(); return; }
+  let handle;
+  try { [handle] = await window.showOpenFilePicker({ id: 'sbe-spec', types: JSON_TYPES }); }
+  catch (e) { if (e.name !== 'AbortError') alert(e.message); return; }
+  await openHandle(handle);
+}
+
+async function openHandle(handle) {
+  try {
+    const perm = await handle.requestPermission({ mode: 'readwrite' });
+    const text = await (await handle.getFile()).text();
+    load(text, 'file', perm === 'granted' ? handle : null, handle.name);
+    if (perm === 'granted') await idbSet(specKey(), handle);
+    if (!state.terms) await restoreTerms();
+  } catch (e) {
+    if (e.name === 'NotFoundError') {
+      await idbDelete(specKey());
+      $('btnReconnect').classList.add('d-none');
+      alert(`${handle.name} is no longer where it was when you opened it (moved, deleted or replaced). Open it again.`);
+      if (!state.spec) $('emptyState').classList.remove('d-none');
+    } else {
+      alert('Could not open the file: ' + e.message);
+    }
+  }
+}
+
+async function ensureWritableHandle() {
+  if (state.handle) {
+    try { await state.handle.getFile(); } catch (e) { if (e.name === 'NotFoundError') { await idbDelete(specKey()); state.handle = null; } }
+  }
+  if (state.handle && await state.handle.queryPermission({ mode: 'readwrite' }) === 'granted') return state.handle;
+  if (state.handle && await state.handle.requestPermission({ mode: 'readwrite' }) === 'granted') return state.handle;
+  if (!hasFsa) return null;
+  alert(`Choose specs/${state.fileName} in your repository to save into it.`);
+  try {
+    const [h] = await window.showOpenFilePicker({ id: 'sbe-spec', types: JSON_TYPES });
+    if (await h.requestPermission({ mode: 'readwrite' }) !== 'granted') return null;
+    state.handle = h;
+    state.fileName = h.name;
+    await idbSet(specKey(), h);
+    return h;
+  } catch { return null; }
+}
+
+function download(text) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
+  a.download = state.fileName;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+async function save() {
+  if (!state.spec || !state.dirty) return;
+  const who = author();
+  if (!who) return;
+  stampAuthor(who);
+  const { errors } = L.check(state.spec, state.terms);
+  if (errors.length) { alert('Fix these problems before saving:\n\n- ' + errors.join('\n- ')); return; }
+  const text = L.serialize(state.spec);
+  const handle = await ensureWritableHandle();
+  if (!handle) {
+    if (confirm(`This browser can't write the file directly. Download ${state.fileName} instead? Then replace the file in specs with it.`)) {
+      download(text);
+      state.diskText = text;
+      state.savedChangelogLength = state.spec.changelog.length;
+      setDirty(false);
+      render();
+    }
+    return;
+  }
+  try {
+    const onDisk = await (await handle.getFile()).text();
+    if (onDisk !== state.diskText && onDisk !== text) {
+      const overwrite = confirm(`${handle.name} changed on disk since you opened it (for example a git pull, or an agent edited it).\n\n`
+        + 'OK: overwrite it with your version (the other changes are lost).\n'
+        + 'Cancel: don\'t save; your version is downloaded so you can merge by hand.');
+      if (!overwrite) { download(text); return; }
+    }
+    const w = await handle.createWritable();
+    await w.write(text);
+    await w.close();
+    state.diskText = text;
+    state.source = 'file';
+    state.savedChangelogLength = state.spec.changelog.length;
+    setDirty(false);
+    render();
+  } catch (e) { alert('Saving failed: ' + e.message); }
+}
+
+async function reloadFromDisk() {
+  if (!state.handle) return;
+  if (state.dirty && !confirm('Discard your unsaved changes and reload the file from disk?')) return;
+  await openHandle(state.handle);
+}
+
+function setDirty(dirty) {
+  state.dirty = dirty;
+  $('btnSave').disabled = !dirty;
+  const pending = state.spec ? state.spec.changelog.length - state.savedChangelogLength : 0;
+  $('btnSave').textContent = dirty ? `Save (${pending})` : 'Save';
+  const where = state.source === 'file' && state.handle ? `${state.handle.name}, connected`
+    : state.source === 'http' ? `${state.fileName}, read via the web server` : state.source === 'upload' ? 'uploaded copy' : '';
+  const fs = $('fileStatus');
+  fs.textContent = dirty ? `${where} · unsaved changes` : where;
+  fs.className = 'badge d-none d-lg-inline ' + (dirty ? 'text-bg-warning' : 'text-bg-secondary');
+  $('btnReload').classList.toggle('d-none', !state.handle);
+}
+
+// ---------- loading terms.json (read only) ----------
+function loadTerms(text, name, initial = false) {
+  const terms = JSON.parse(text);
+  if (!Array.isArray(terms.terms)) throw new Error('This is not a terms.json file.');
+  state.terms = terms;
+  state.termsName = name;
+  if (!state.spec) return;
+  const y = scrollY;
+  render();
+  // Re-rendering moves the content: on the first load go to the linked item, later keep the reader where they were.
+  if (initial && location.hash) goTo(decodeURIComponent(location.hash.slice(1))); else scrollTo(0, y);
+}
+async function pickTerms() {
+  if (!hasFsa) { $('termsPicker').click(); return; }
+  try {
+    const [h] = await window.showOpenFilePicker({ id: 'sbe-terms', types: JSON_TYPES });
+    loadTerms(await (await h.getFile()).text(), `${h.name}, connected`);
+    await idbSet(termsKey(), h);
+  } catch (e) { if (e.name !== 'AbortError') alert('Could not load terms.json: ' + e.message); }
+}
+/** Loads terms.json next to the spec (over http) or from the remembered handle; quietly does nothing otherwise. */
+async function restoreTerms() {
+  const rel = state.spec?.meta.termsFile || '../terms/terms.json';
+  if (state.specUrl) {
+    try {
+      const url = new URL(rel, state.specUrl);
+      const res = await fetch(url, { cache: 'no-store' });
+      if (res.ok) { loadTerms(await res.text(), `${url.pathname}, read via the web server`, true); return; }
+    } catch { /* fall through */ }
+  }
+  const h = hasFsa ? await idbGet(termsKey()) : undefined;
+  if (!h) return;
+  try {
+    let perm = await h.queryPermission({ mode: 'read' });
+    if (perm !== 'granted') perm = await h.requestPermission({ mode: 'read' }).catch(() => 'prompt');
+    if (perm === 'granted') loadTerms(await (await h.getFile()).text(), `${h.name}, connected`, true);
+  } catch (e) { if (e.name === 'NotFoundError') await idbDelete(termsKey()); }
+}
+
+// ---------- changelog ----------
+const AUTHOR_MISSING = 'Enter your name: it is written to the changelog.';
+
+/** The author name from the top bar. When it is empty, points at the field (focus and a message next to it) and returns null. */
+function author() {
+  const name = $('author').value.trim();
+  if (name) return name;
+  const input = $('author');
+  input.classList.add('is-invalid');
+  input.setCustomValidity(AUTHOR_MISSING);
+  input.focus();
+  input.reportValidity();
+  return null;
+}
+
+/** Remembers the author name in this browser; the field turns red only after an action needed a name, and clears once one is typed. */
+function storeAuthor() {
+  const input = $('author');
+  const name = input.value.trim();
+  if (name) { input.classList.remove('is-invalid'); input.setCustomValidity(''); }
+  try { localStorage.setItem('sbe-spec-author', name); } catch { /* optional */ }
+}
+
+/** Makes sure an author name is set before the editor writes to the changelog: takes it from the editor's own name field, or reports it there. */
+function requireAuthorInEditor() {
+  if (!$('author').value.trim() && $('fAuthor').value.trim()) { $('author').value = $('fAuthor').value.trim(); storeAuthor(); }
+  if ($('author').value.trim()) return true;
+  $('authorRow').classList.remove('d-none');
+  $('fAuthor').classList.add('is-invalid');
+  $('editError').textContent = AUTHOR_MISSING;
+  $('editError').classList.remove('d-none');
+  $('fAuthor').focus();
+  return false;
+}
+
+/** Sets the author of every unsaved changelog entry to the given name. */
+function stampAuthor(name) {
+  state.spec.changelog.slice(state.savedChangelogLength).forEach((c) => { c.author = name; });
+}
+/** Adds a changelog entry; repeated unsaved edits of the same item by the same person are merged. */
+function log(action, ref, summary) {
+  const who = author();
+  if (!who) return false;
+  const cl = state.spec.changelog;
+  const last = cl[cl.length - 1];
+  if (last && cl.length > state.savedChangelogLength && last.ref === ref && last.author === who
+      && last.date.slice(0, 10) === today() && last.action === action && action === 'changed') {
+    if (!last.summary.includes(summary)) last.summary += ' ' + summary;
+    last.date = now();
+  } else {
+    cl.push({ date: now(), author: who, action, ref, summary });
+  }
+  setDirty(true);
+  return true;
+}
+
+// ---------- editor ----------
+// Field types: text, int, date, slug, id, dataid, bool, md, gherkin, select:<source>, ids, csv, lines, related, derived, values
+const FORMS = {
+  meta: [['key', 'Ticket key', 'text', 3], ['version', 'Version', 'text', 2], ['date', 'Date', 'date', 3], ['status', 'Document status', 'text', 4],
+    ['title', 'Short title', 'text', 6], ['fullTitle', 'Full title', 'text', 6], ['approvedBy', 'Approved by', 'text', 6], ['approvedOn', 'Approved on', 'text', 6],
+    ['related', 'Related documents (one per line: label | path)', 'related'], ['precedence', 'Precedence', 'md'], ['termsFile', 'Terms file (relative to the spec file)', 'text']],
+  terms: [['terms', 'Term ids from terms.json (one per line)', 'lines']],
+  sections: [['id', 'Id (anchor)', 'slug', 4], ['title', 'Title', 'text', 5], ['list', 'Shows', 'select:lists', 3], ['body', 'Text before', 'md'], ['after', 'Text after', 'md']],
+  dataKinds: [['id', 'Id (anchor: data-kind-<id>)', 'slug', 3], ['label', 'Name of one item, e.g. Version', 'text', 4], ['title', 'Title, e.g. Versions', 'text', 5],
+    ['columns', 'Columns (one per line)', 'lines'],
+    ['derived', 'Derived columns (one per line: title | kind | column). Lists the items of that kind whose column mentions the item, e.g. Loans | loan | Member', 'derived']],
+  data: [['id', 'ID, e.g. BK-2 or MEM-1', 'dataid', 3], ['kind', 'Kind', 'select:dataKinds', 5], ['testOnly', 'Test cases only', 'bool', 4], ['values', 'Values', 'values']],
+  stories: [['id', 'ID', 'id', 3], ['title', 'Title', 'text', 9], ['text', 'Story', 'md'], ['setup', 'Setup', 'md'], ['readiness', 'Readiness', 'text']],
+  ruleGroups: [['id', 'Number', 'text', 2], ['title', 'Title', 'text', 6], ['story', 'Story', 'select:stories?', 4], ['note', 'Note', 'md']],
+  rules: [['id', 'ID', 'id', 3], ['group', 'Group', 'select:ruleGroups', 9], ['statement', 'Statement', 'md']],
+  examples: [['id', 'ID', 'id', 3], ['rule', 'Rule', 'select:rules', 9], ['text', 'Example', 'md']],
+  acceptanceCriteria: [['id', 'ID', 'id', 2], ['title', 'Title', 'text', 7], ['story', 'Story', 'select:stories', 3], ['status', 'Status', 'select:acStatus', 4],
+    ['statusNote', 'Status note', 'text', 8], ['rules', 'Rules', 'ids', 6], ['examples', 'Examples', 'ids', 6],
+    ['description', 'Text before the scenarios', 'md'], ['scenarios', 'Scenarios (Gherkin; each starts with "Scenario:" or "Scenario Outline:")', 'gherkin'], ['notes', 'Text after the scenarios', 'md']],
+  testCases: [['id', 'ID', 'id', 2], ['title', 'Title', 'text', 7], ['status', 'Status', 'select:tcStatus', 3], ['acs', 'ACs', 'ids', 6], ['automation', 'Automated test (path; empty = manual)', 'text', 6],
+    ['steps', 'Steps (Gherkin or text)', 'md'], ['notes', 'Notes', 'md']],
+  limitations: [['id', 'ID', 'id', 2], ['title', 'Title', 'text', 10], ['text', 'Limitation', 'md'], ['affects', 'Affects', 'ids', 6], ['followUp', 'Follow-up', 'text', 6]],
+  assumptions: [['id', 'ID', 'id', 3], ['affects', 'Affects', 'ids', 9], ['text', 'Assumption', 'md']],
+  risks: [['id', 'ID', 'id', 3], ['likelihood', 'Likelihood (1–3)', 'int', 3], ['impact', 'Impact (1–3)', 'int', 3], ['acs', 'ACs', 'ids', 12], ['text', 'Risk', 'md'], ['testApproach', 'Test approach', 'text']],
+  questions: [['id', 'ID', 'id', 3], ['status', 'Status', 'select:qStatus', 3], ['askedTo', 'Asked to', 'text', 6], ['text', 'Question', 'md'], ['blocks', 'Blocks', 'text'], ['resolution', 'Resolution', 'md']],
+  decisions: [['date', 'Date', 'date', 3], ['refs', 'Affected IDs', 'ids', 9], ['text', 'Decision', 'md']],
+  withdrawn: [['ids', 'IDs (comma-separated; a range as F-LOAN-01..F-LOAN-42)', 'csv'], ['reason', 'Reason', 'md']],
+};
+const OPTIONS = {
+  lists: () => [['', '(nothing)'], ...L.LISTS.map((x) => [x, x])],
+  stories: () => state.spec.stories.map((s) => [s.id, `${s.id} ${s.title}`]),
+  dataKinds: () => (state.spec.dataKinds ?? []).map((k) => [k.id, k.title]),
+  'stories?': () => [['', '(none)'], ...state.spec.stories.map((s) => [s.id, `${s.id} ${s.title}`])],
+  ruleGroups: () => state.spec.ruleGroups.map((g) => [g.id, `${g.id} ${g.title}`]),
+  rules: () => state.spec.rules.map((r) => [r.id, `${r.id}: ${short(plain(r.statement), 90)}`]),
+  acStatus: () => L.AC_STATUSES.map((s) => [s.id, s.label]),
+  tcStatus: () => ['draft', 'ready', 'passed', 'failed', 'blocked'].map((x) => [x, x]),
+  qStatus: () => [['open', 'open'], ['resolved', 'resolved']],
+};
+const csv = (s) => s.split(/[,\n]/).map((x) => x.trim()).filter(Boolean);
+
+/** Next free ID for a collection, e.g. AC-45 after AC-44; skips withdrawn IDs. */
+function nextId(c) {
+  const ids = (state.spec[c] ?? []).map((x) => x.id);
+  if (!ids.length) return { acceptanceCriteria: 'AC-01', stories: 'US-01', rules: 'RULE-01', examples: 'EX-01', testCases: 'TC-01', limitations: 'KL-01',
+    assumptions: 'ASM-01', risks: 'R-01', questions: 'Q-01' }[c] ?? '';
+  const prefix = ids[ids.length - 1].replace(/\d+[a-z]?$/, '');
+  const nums = ids.filter((x) => x.startsWith(prefix)).map((x) => parseInt(x.slice(prefix.length), 10)).filter((n) => !isNaN(n));
+  const width = ids[ids.length - 1].slice(prefix.length).replace(/[a-z]$/, '').length;
+  let n = Math.max(0, ...nums) + 1;
+  while (state.withdrawn.has(prefix + String(n).padStart(width, '0'))) n++;
+  return prefix + String(n).padStart(width, '0');
+}
+
+/** One Markdown field per column of a data kind, filled with the given values. */
+function valueFieldsHtml(kind, values) {
+  const k = state.dataKinds.get(kind);
+  if (!k) return '<div class="col-12 small text-body-secondary">Pick a kind.</div>';
+  return k.columns.map((c, i) => fieldHtml([`value_${i}`, c, 'md', 12], values?.[c] ?? '').replace('<textarea ', `<textarea data-col="${esc(c)}" `)).join('');
+}
+
+function fieldHtml([key, label, type, width], value) {
+  const id = 'f_' + key;
+  const col = `col-md-${width ?? 12}`;
+  const v = value ?? '';
+  if (type === 'values') return `<div id="${id}" class="col-12 row g-2 m-0 p-0" data-type="values"></div>`;
+  if (type === 'bool') {
+    return `<div class="${col} d-flex align-items-end"><div class="form-check mb-2"><input id="${id}" class="form-check-input" type="checkbox" ${v ? 'checked' : ''}>
+      <label class="form-check-label" for="${id}">${esc(label)}</label></div></div>`;
+  }
+  if (type === 'md' || type === 'gherkin' || type === 'related' || type === 'lines' || type === 'derived') {
+    const text = type === 'gherkin' ? (v || []).join('\n\n') : type === 'related' ? (v || []).map((r) => `${r.label} | ${r.path}`).join('\n')
+      : type === 'derived' ? (v || []).map((d) => `${d.title} | ${d.kind} | ${d.column}`).join('\n')
+      : type === 'lines' ? (v || []).join('\n') : v;
+    const rows = Math.min(18, Math.max(type === 'gherkin' ? 8 : 3, String(text).split('\n').length + 1, Math.ceil(String(text).length / 120)));
+    const help = type === 'md' ? '<div class="form-text">Markdown: **bold**, *italic*, `code`, lists, | tables |. IDs are linked automatically; <code>[[term-id]]</code> links a term. Preview:</div><div class="preview" data-preview-for="' + id + '"></div>'
+      : type === 'gherkin' ? '<div class="form-text">Preview:</div><div class="preview" data-preview-for="' + id + '"></div>'
+      : type === 'lines' && key === 'terms' ? '<div class="form-text">Ids as in <code>terms.json</code>, e.g. <code>loan-period</code>.</div>' : '';
+    return `<div class="${col}"><label class="form-label" for="${id}">${esc(label)}</label>
+      <textarea id="${id}" class="form-control ${type === 'gherkin' || type === 'lines' || type === 'derived' ? 'font-monospace' : ''}" rows="${rows}" data-type="${type}">${esc(text)}</textarea>${help}</div>`;
+  }
+  if (type.startsWith('select:')) {
+    const opts = OPTIONS[type.slice(7)]();
+    return `<div class="${col}"><label class="form-label" for="${id}">${esc(label)}</label><select id="${id}" class="form-select">
+      ${opts.map(([val, text]) => `<option value="${esc(val)}" ${val === v ? 'selected' : ''}>${esc(text)}</option>`).join('')}</select></div>`;
+  }
+  if (type === 'ids') {
+    const ids = v || [];
+    return `<div class="${col}"><label class="form-label" for="${id}_in">${esc(label)}</label>
+      <input id="${id}" type="hidden" value="${esc(ids.join(', '))}">
+      <div class="form-control idchips" data-chips-for="${id}">${ids.map(idChipHtml).join('')}<input id="${id}_in" class="font-monospace" list="${id}_list" autocomplete="off" placeholder="Add an ID" aria-describedby="${id}_help"></div>
+      <datalist id="${id}_list">${idOptionsHtml(key)}</datalist>
+      <div class="form-text" id="${id}_help">Type an ID or a word from its title, pick a suggestion, then press Enter or comma. Backspace removes the last one. A yellow chip is an unknown ID.</div></div>`;
+  }
+  const val = type === 'csv' ? (v || []).join(', ') : v;
+  const attrs = type === 'int' ? 'type="number" min="1" max="3"' : type === 'date' ? 'type="date"' : 'type="text"';
+  const mono = ['id', 'dataid', 'slug', 'csv'].includes(type) ? 'font-monospace' : '';
+  return `<div class="${col}"><label class="form-label" for="${id}">${esc(label)}</label><input id="${id}" class="form-control ${mono}" ${attrs} value="${esc(val)}"></div>`;
+}
+
+/** Collections whose IDs an "ids" field suggests; other fields suggest every ID. */
+const IDS_SOURCE = { rules: ['rules'], examples: ['examples'], acs: ['acceptanceCriteria'] };
+
+/** Suggestions for an "ids" field: value is the ID, label its title (the browser matches both). */
+function idOptionsHtml(key) {
+  const only = IDS_SOURCE[key];
+  const opts = [...state.ids].filter(([, v]) => !only || only.includes(v.collection)).map(([id]) => [id, itemTitle(id)]);
+  if (!only) opts.push(...[...state.data.keys()].map((id) => [id, '']));
+  return opts.map(([id, t]) => `<option value="${esc(id)}"${t ? ` label="${esc(t)}"` : ''}></option>`).join('');
+}
+
+/** One removable chip for an ID in an "ids" field; unknown IDs are marked. */
+function idChipHtml(id) {
+  const unknown = !state.ids.has(id) && !state.data.has(id);
+  return `<span class="idchip${unknown ? ' unknown' : ''}" data-id="${esc(id)}"${unknown ? ' title="Unknown ID"' : ''}>${esc(id)}${unknown ? '<span class="visually-hidden"> (unknown ID)</span>' : ''}`
+    + `<button type="button" aria-label="Remove ${esc(id)}" tabindex="-1">×</button></span>`;
+}
+
+/** Writes the chips of an "ids" field back into its hidden input. */
+function syncChips(box) {
+  const hidden = $(box.dataset.chipsFor);
+  hidden.value = [...box.querySelectorAll('.idchip')].map((c) => c.dataset.id).join(', ');
+  hidden.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
+/** Turns the text typed in an "ids" field into chips (a comma or space separates IDs; repeated IDs are skipped). */
+function commitChips(input) {
+  const box = input.closest('.idchips');
+  const have = new Set([...box.querySelectorAll('.idchip')].map((c) => c.dataset.id));
+  const ids = input.value.split(/[\s,]+/).filter((x) => x && !have.has(x));
+  input.value = '';
+  if (!ids.length) return;
+  input.insertAdjacentHTML('beforebegin', [...new Set(ids)].map(idChipHtml).join(''));
+  syncChips(box);
+}
+
+/** The value of a form field as plain text, for the review of changes. */
+function fieldText(type, v) {
+  if (v == null) return '';
+  if (type === 'gherkin') return v.join('\n\n');
+  if (type === 'ids' || type === 'csv') return v.join(', ');
+  if (type === 'lines') return v.join('\n');
+  if (type === 'related') return v.map((r) => `${r.label} | ${r.path}`).join('\n');
+  if (type === 'derived') return v.map((d) => `${d.title} | ${d.kind} | ${d.column}`).join('\n');
+  if (type === 'values') return Object.entries(v).map(([k, x]) => `${k}: ${x}`).join('\n');
+  if (type === 'bool') return v ? 'yes' : 'no';
+  return String(v);
+}
+
+/** Longest-common-subsequence diff of two arrays: rows of [' ' | '-' | '+', item]. */
+function diffRows(x, y) {
+  const t = Array.from({ length: x.length + 1 }, () => new Array(y.length + 1).fill(0));
+  for (let i = x.length - 1; i >= 0; i--) for (let j = y.length - 1; j >= 0; j--) t[i][j] = x[i] === y[j] ? t[i + 1][j + 1] + 1 : Math.max(t[i + 1][j], t[i][j + 1]);
+  const rows = [];
+  let i = 0, j = 0;
+  while (i < x.length && j < y.length) {
+    if (x[i] === y[j]) { rows.push([' ', x[i]]); i++; j++; }
+    else if (t[i + 1][j] >= t[i][j + 1]) rows.push(['-', x[i++]]);
+    else rows.push(['+', y[j++]]);
+  }
+  while (i < x.length) rows.push(['-', x[i++]]);
+  while (j < y.length) rows.push(['+', y[j++]]);
+  return rows;
+}
+
+/** Word-level diff of a removed and an added line: both lines as HTML, with only the changed words marked. */
+function wordDiffHtml(before, after) {
+  const words = (t) => t.split(/(\s+)/).filter(Boolean);
+  const rows = diffRows(words(before), words(after));
+  const side = (mark) => rows.filter(([m]) => m === ' ' || m === mark)
+    .map(([m, w]) => (m === ' ' ? esc(w) : `<mark class="${mark === '+' ? 'add' : 'del'}-w">${esc(w)}</mark>`)).join('')
+    // merge neighbouring marks that are only separated by whitespace into one
+    .replace(/<\/mark>(\s*)<mark class="[a-z]+-w">/g, '$1');
+  return [side('-'), side('+')];
+}
+
+/** Line diff of two texts as HTML: removed and added lines (changed words marked inside a replaced line), with long unchanged runs collapsed. */
+function diffHtml(before, after) {
+  const rows = diffRows(before ? before.split('\n') : [], after ? after.split('\n') : []);
+  // a removed line directly followed by an added one is a replaced line: pair them for the word diff
+  const paired = new Map();
+  for (let k = 0; k < rows.length; k++) {
+    if (rows[k][0] !== '-') continue;
+    let a = k, b = k;
+    while (rows[b] && rows[b][0] === '-') b++;
+    let c = b;
+    while (rows[c] && rows[c][0] === '+') c++;
+    for (let n = 0; n < Math.min(b - a, c - b); n++) paired.set(a + n, b + n);
+    k = c - 1;
+  }
+  const near = (k) => rows.slice(Math.max(0, k - 1), k + 2).some(([m]) => m !== ' ');
+  const out = [];
+  let skipped = 0;
+  const flush = () => { if (skipped) out.push(`<span class="text-body-secondary">… ${skipped} unchanged line${skipped > 1 ? 's' : ''}</span>`); skipped = 0; };
+  const html = {};
+  paired.forEach((b, a) => { const [d, i] = wordDiffHtml(rows[a][1], rows[b][1]); html[a] = d; html[b] = i; });
+  rows.forEach(([m, line], k) => {
+    if (m === ' ' && !near(k)) { skipped++; return; }
+    flush();
+    const text = k in html ? html[k] : (esc(line) || '&nbsp;');
+    const cls = (k in html ? ' replaced' : '');
+    out.push(m === ' ' ? `<span class="d-block">${text}</span>`
+      : `<${m === '+' ? 'ins' : 'del'} class="${m === '+' ? 'add' : 'del'}${cls}">${text}</${m === '+' ? 'ins' : 'del'}>`);
+  });
+  flush();
+  return out.join('');
+}
+
+/** The form fields whose value differs between the stored item and the edited one. */
+const changedFields = (c, cur, next) => FORMS[c].filter(([k]) => JSON.stringify(cur[k] ?? '') !== JSON.stringify(next[k] ?? ''));
+
+/** Switches the editor between its form and the review of the changes about to be applied. */
+function setReviewing(on, focus = true) {
+  reviewing = on;
+  $('editBody').classList.toggle('d-none', on);
+  $('editReview').classList.toggle('d-none', !on);
+  $('btnBack').classList.toggle('d-none', !on);
+  $('btnApply').textContent = on ? 'Confirm and apply' : 'Apply';
+  updateEditButtons();
+  if (!focus) return;
+  if (on) $('btnApply').focus();
+  else $('editFields').querySelector('input:not([type=hidden]), textarea, select')?.focus();
+}
+
+/** Shows Delete and Withdraw only while an existing item is edited (not in the review). */
+function updateEditButtons() {
+  const { collection: c, isNew } = editing;
+  $('btnDelete').classList.toggle('d-none', reviewing || isNew || c === 'meta' || c === 'terms');
+  $('btnWithdraw').classList.toggle('d-none', reviewing || isNew || !L.ID_COLLECTIONS.includes(c));
+}
+
+/** Marks the editor's title while its fields differ from what was opened. */
+function updateDirty() {
+  $('editDirty').classList.toggle('d-none', editFormState() === editBaseline);
+}
+
+function updatePreviews() {
+  document.querySelectorAll('[data-preview-for]').forEach((p) => {
+    const ta = $(p.dataset.previewFor);
+    p.innerHTML = ta.dataset.type === 'gherkin' ? splitScenarios(ta.value).map(gherkin).join('') : md(ta.value);
+  });
+}
+const splitScenarios = (text) => text.split(/\n(?=\s*Scenario(?: Outline)?:)/).map((x) => x.trim()).filter(Boolean);
+
+function openEditor(c, key, defaults) {
+  const isNew = key === null;
+  editing = { collection: c, key, isNew };
+  let item;
+  if (c === 'meta') item = state.spec.meta;
+  else if (c === 'terms') item = { terms: state.spec.terms };
+  else if (isNew) {
+    item = { ...defaults };
+    if (L.ID_COLLECTIONS.includes(c)) item.id = nextId(c);
+    if (c === 'acceptanceCriteria') { item.status ??= 'draft'; item.rules ??= []; item.examples ??= []; item.scenarios ??= []; }
+    if (c === 'testCases') item.status ??= 'draft';
+    if (c === 'questions') item.status ??= 'open';
+    if (c === 'risks') { item.likelihood ??= 2; item.impact ??= 2; }
+    if (c === 'data') item.values ??= {};
+    if (c === 'dataKinds') { item.columns ??= ['Note']; item.derived ??= []; }
+  } else item = find(c, key);
+  const title = c === 'meta' || c === 'terms' ? `Edit ${lower(c)}` : isNew ? `Add ${lower(c)}` : `Edit ${lower(c)} ${item.id ?? ''}`;
+  $('editTitle').textContent = title;
+  $('editFields').innerHTML = FORMS[c].map((f) => fieldHtml(f, item[f[0]])).join('');
+  if (c === 'data') {
+    $('f_values').innerHTML = valueFieldsHtml(item.kind, item.values);
+    // Another kind: keep what was typed in the columns both kinds have.
+    $('f_kind').onchange = () => { const typed = readForm('data').values; $('f_values').innerHTML = valueFieldsHtml($('f_kind').value, typed); updatePreviews(); };
+  }
+  const idInput = $('f_id');
+  if (idInput && !isNew && c !== 'ruleGroups') { idInput.readOnly = true; idInput.title = 'IDs are stable and can\'t be changed. Withdraw the ID instead.'; }
+  if (c === 'terms') $('f_terms').setAttribute('list', 'dlTerms');
+  $('fNote').value = '';
+  $('fAuthor').value = '';
+  $('fAuthor').classList.remove('is-invalid');
+  $('authorRow').classList.toggle('d-none', !!$('author').value.trim());
+  $('editError').classList.add('d-none');
+  setReviewing(false, false);
+  updatePreviews();
+  editBaseline = editFormState();
+  updateDirty();
+  editForceClose = false;
+  editModal.show();
+}
+
+/** Every field value of the open editor as one string. */
+function editFormState() {
+  return JSON.stringify([...$('editForm').querySelectorAll('input:not(#fAuthor), textarea, select')].map((el) => (el.type === 'checkbox' ? el.checked : el.value)));
+}
+
+/** Closes the editor without asking: its input was applied or is deliberately dropped. */
+function closeEditor() {
+  editForceClose = true;
+  editModal.hide();
+}
+
+// Esc, the backdrop, the X and Cancel all end up here: ask before throwing away typed input.
+$('editModal').addEventListener('hide.bs.modal', (e) => {
+  if (editForceClose || editFormState() === editBaseline) return;
+  e.preventDefault();
+  if (confirm('Discard your changes to this item?')) closeEditor();
+});
+
+// The Edit / + button is re-rendered by Apply, so look it up again; fall back to the old one if it still exists.
+$('editModal').addEventListener('hidden.bs.modal', () => {
+  const o = editOpener;
+  editOpener = null;
+  if (!o) return;
+  (document.querySelector(o.selector) ?? (o.el.isConnected ? o.el : null))?.focus({ preventScroll: true });
+});
+
+function readForm(c) {
+  const out = {};
+  for (const [key, , type] of FORMS[c]) {
+    if (type === 'values') {
+      out[key] = {};
+      document.querySelectorAll('#f_values [data-col]').forEach((ta) => { if (ta.value.trim()) out[key][ta.dataset.col] = ta.value.replace(/\s+$/, ''); });
+      continue;
+    }
+    if (type === 'bool') { out[key] = $('f_' + key).checked || undefined; continue; }
+    const v = $('f_' + key).value;
+    if (type === 'gherkin') out[key] = splitScenarios(v);
+    else if (type === 'ids' || type === 'csv') out[key] = csv(v);
+    else if (type === 'lines') out[key] = v.split('\n').map((x) => x.trim()).filter(Boolean);
+    else if (type === 'related') out[key] = v.split('\n').map((x) => x.trim()).filter(Boolean).map((x) => { const [label, ...p] = x.split('|'); return { label: label.trim(), path: p.join('|').trim() }; });
+    else if (type === 'derived') out[key] = v.split('\n').map((x) => x.trim()).filter(Boolean).map((x) => { const [title, kind, column] = x.split('|').map((p) => p.trim()); return { title, kind, column }; });
+    else if (type === 'int') out[key] = parseInt(v, 10);
+    else out[key] = type === 'md' ? v.replace(/\s+$/, '') : v.trim();
+  }
+  return out;
+}
+
+/** Inserts a new item after the last one with the same parent, so the file keeps its reading order. */
+function insert(c, item) {
+  const arr = state.spec[c];
+  const parentKey = { rules: 'group', examples: 'rule', acceptanceCriteria: 'story', data: 'kind' }[c];
+  const idx = parentKey ? arr.map((x) => x[parentKey]).lastIndexOf(item[parentKey]) : -1;
+  if (idx >= 0) arr.splice(idx + 1, 0, item); else arr.push(item);
+}
+
+function applyEdit(ev) {
+  ev.preventDefault();
+  const { collection: c, key, isNew } = editing;
+  if (!reviewing) document.querySelectorAll('#editFields .idchips input').forEach(commitChips);
+  const next = readForm(c);
+  const err = [];
+  if (L.ID_COLLECTIONS.includes(c)) {
+    if (!/^[A-Z]+(-[A-Z]+)*-[0-9]+[a-z]?$/.test(next.id)) err.push('The ID must look like AC-01, AC-09a or RULE-LOAN-03.');
+    if (isNew && state.ids.has(next.id)) err.push(`${next.id} is already used.`);
+    if (isNew && state.withdrawn.has(next.id)) err.push(`${next.id} was withdrawn and must not be reused.`);
+  }
+  if (c === 'sections' && !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(next.id)) err.push('The section id must be a lowercase slug.');
+  if (c === 'sections' && isNew && state.spec.sections.some((s) => s.id === next.id)) err.push(`Section id "${next.id}" is already used.`);
+  if (c === 'data') {
+    if (!L.DATA_ID.test(next.id)) err.push('The ID must look like MEM-1, BK-2 or CP-3a1.');
+    if (isNew && (state.data.has(next.id) || state.ids.has(next.id) || state.withdrawn.has(next.id))) err.push(`${next.id} is already used.`);
+    if (!state.dataKinds.has(next.kind)) err.push('Pick a kind.');
+  }
+  if (c === 'dataKinds') {
+    if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(next.id)) err.push('The kind id must be a lowercase slug.');
+    if (isNew && state.dataKinds.has(next.id)) err.push(`Kind "${next.id}" already exists.`);
+    if (!next.label) err.push('The name of one item is required.');
+    if (!next.columns.length) err.push('A kind needs at least one column.');
+    for (const d of next.derived) if (!d.title || !d.kind || !d.column) err.push(`Derived column "${d.title ?? ''}" needs a title, a kind and a column.`);
+  }
+  if (c === 'ruleGroups' && !next.id) err.push('The group needs a number.');
+  if (c === 'ruleGroups' && next.id !== key && state.spec.ruleGroups.some((g) => g.id === next.id)) err.push(`Group "${next.id}" already exists.`);
+  for (const f of ['title', 'statement', 'text']) if (f in next && !String(next[f]).trim() && FORMS[c].some((x) => x[0] === f)) err.push(`${f} is required.`);
+  if (c === 'acceptanceCriteria' && !next.scenarios.length && !next.description) err.push('An AC needs scenarios or a text before the scenarios.');
+  if (c === 'risks' && (![1, 2, 3].includes(next.likelihood) || ![1, 2, 3].includes(next.impact))) err.push('Likelihood and impact are 1, 2 or 3.');
+  if (c === 'questions' && next.status === 'resolved' && !next.resolution) err.push('A resolved question needs a resolution.');
+  if (err.length) { $('editError').innerHTML = err.map(esc).join('<br>'); $('editError').classList.remove('d-none'); return; }
+  if (!requireAuthorInEditor()) return;
+  if (!reviewing && !isNew) {
+    const cur = c === 'meta' ? state.spec.meta : c === 'terms' ? { terms: state.spec.terms } : find(c, key);
+    const changed = changedFields(c, cur, next);
+    if (changed.length) {
+      $('editReview').innerHTML = `<h3 class="h6">${changed.length} field${changed.length > 1 ? 's' : ''} changed${cur.id ? ' in ' + esc(cur.id) : ''}. Check them, then confirm.</h3>`
+        + changed.map(([k, label, type]) => `<div class="diff-field"><div class="fw-semibold small mb-1">${esc(label.replace(/ \(.*$/, ''))}</div>`
+          + `<pre>${diffHtml(fieldText(type, cur[k]), fieldText(type, next[k]))}</pre></div>`).join('');
+      setReviewing(true);
+      $('editReview').scrollTop = 0;
+      return;
+    }
+  }
+
+  const note = $('fNote').value.trim();
+  const withNote = (s) => (note ? `${s} ${note.replace(/\.?$/, '.')}` : s);
+  let ref = next.id ?? '';
+  if (c === 'meta' || c === 'terms') {
+    const cur = c === 'meta' ? state.spec.meta : { terms: state.spec.terms };
+    const changed = changedFields(c, cur, next).map((f) => f[1].replace(/ \(.*$/, '').toLowerCase());
+    if (!changed.length) { closeEditor(); return; }
+    if (c === 'terms') {
+      const added = next.terms.filter((x) => !cur.terms.includes(x));
+      const removed = cur.terms.filter((x) => !next.terms.includes(x));
+      if (!log('changed', 'terms', withNote(`Terms list: ${[added.length ? 'added ' + added.join(', ') : '', removed.length ? 'removed ' + removed.join(', ') : ''].filter(Boolean).join('; ') || 'reordered'}.`))) return;
+      state.spec.terms = next.terms;
+    } else {
+      if (!log('changed', '', withNote(`Document control: changed ${changed.join(', ')}.`))) return;
+      Object.assign(state.spec.meta, next);
+    }
+  } else if (isNew) {
+    if (c === 'sections') ref = next.id;
+    const what = c === 'decisions' ? 'decision' : 'added';
+    const summary = c === 'decisions' ? `Decision of ${next.date}: ${short(plain(next.text), 120)}` : c === 'withdrawn' ? `Withdrew ${next.ids.join(', ')}.` : `Added ${lower(c)}${next.title ? ' "' + next.title + '"' : ''}.`;
+    if (!log(c === 'withdrawn' ? 'withdrawn' : what, c === 'withdrawn' || c === 'decisions' || c === 'ruleGroups' || c === 'dataKinds' ? '' : ref, withNote(summary))) return;
+    if (c === 'sections') state.spec.sections.push(next); else insert(c, next);
+  } else {
+    const cur = find(c, key);
+    const changed = changedFields(c, cur, next);
+    if (!changed.length) { closeEditor(); return; }
+    const parts = changed.map(([k, label]) => k === 'status' && c === 'acceptanceCriteria'
+      ? `status ${STATUS_LABEL[cur.status]} → ${STATUS_LABEL[next.status]}` : label.replace(/ \(.*$/, '').toLowerCase());
+    if (c === 'ruleGroups' || c === 'decisions' || c === 'withdrawn' || c === 'dataKinds') ref = '';
+    const label = c === 'ruleGroups' ? `rule group ${cur.id}` : c === 'dataKinds' ? `data kind ${cur.id}` : c === 'data' ? `data item ${cur.id}` : c === 'decisions' ? `decision of ${cur.date}` : c === 'withdrawn' ? 'withdrawn IDs' : c === 'sections' ? `section "${cur.title}"` : '';
+    if (!log('changed', ref, withNote(`Changed ${label ? label + ': ' : ''}${parts.join(', ')}.`))) return;
+    if (c === 'ruleGroups' && next.id !== cur.id) state.spec.rules.forEach((r) => { if (r.group === cur.id) r.group = next.id; });
+    Object.assign(cur, next);
+    if (c === 'data' && !next.testOnly) delete cur.testOnly;
+  }
+  closeEditor();
+  render();
+  if (ref) setTimeout(() => goTo(ref), 300);
+}
+
+function deleteItem() {
+  const { collection: c, key } = editing;
+  const item = find(c, key);
+  const id = item.id;
+  if (c === 'dataKinds' && state.spec.data.some((d) => d.kind === id)) { alert(`Kind "${id}" still has data items. Delete them or move them to another kind first.`); return; }
+  if (!requireAuthorInEditor()) return;
+  const by = id ? state.refBy.get(id) ?? [] : [];
+  const msg = `Delete ${lower(c)} ${id ?? ''}?\n\n`
+    + (c === 'data' ? 'Its ID is mentioned in text as plain text; after deleting, such mentions are reported as unknown data items.' : '')
+    + (L.ID_COLLECTIONS.includes(c) ? 'Only delete items added by mistake. If the ID was ever shared (tests, tickets, reviews), use "Withdraw ID" instead, so it is never reused.' : '')
+    + (by.length ? `\n\nReferenced by: ${by.join(', ')}. These references will break.` : '');
+  if (!confirm(msg)) return;
+  if (!log('deleted', id ?? '', `Deleted ${lower(c)} ${id ?? ''}${item.title ? ' "' + item.title + '"' : ''}. ${$('fNote').value.trim()}`.replace(/\s+$/, ''))) return;
+  state.spec[c] = state.spec[c].filter((x) => x !== item);
+  closeEditor();
+  render();
+}
+
+function withdrawItem() {
+  const { collection: c, key } = editing;
+  const item = find(c, key);
+  if (!requireAuthorInEditor()) return;
+  const by = state.refBy.get(item.id) ?? [];
+  const reason = (prompt(`Withdraw ${item.id}? It is removed and never reused.${by.length ? `\nReferenced by: ${by.join(', ')}. Fix these references afterwards.` : ''}\n\nReason:`, $('fNote').value.trim()) ?? '').trim();
+  if (!reason) return;
+  if (!log('withdrawn', item.id, `Withdrew ${lower(c)} ${item.id}${item.title ? ' "' + item.title + '"' : ''}. ${reason.replace(/\.?$/, '.')}`)) return;
+  state.spec[c] = state.spec[c].filter((x) => x !== item);
+  if (c === 'rules') state.spec.examples.filter((e) => e.rule === item.id).forEach((e) => { e.rule = ''; });
+  state.spec.withdrawn.push({ ids: [item.id], reason: reason.replace(/\.?$/, '.') });
+  closeEditor();
+  render();
+}
+
+// ---------- wiring ----------
+$('btnOpen').onclick = pickFile;
+$('btnOpenEmpty').onclick = pickFile;
+$('btnSave').onclick = save;
+$('btnReload').onclick = reloadFromDisk;
+$('termsStatus').onclick = pickTerms;
+$('btnExpand').onclick = () => document.querySelectorAll('#sections details').forEach((d) => { d.open = true; });
+$('btnCollapse').onclick = () => document.querySelectorAll('#sections details').forEach((d) => { d.open = false; });
+$('btnClearFilters').onclick = clearFilters;
+$('btnDelete').onclick = deleteItem;
+$('btnWithdraw').onclick = withdrawItem;
+$('editForm').onsubmit = applyEdit;
+$('editFields').addEventListener('input', (e) => { if (e.target.dataset.type === 'md' || e.target.dataset.type === 'gherkin') updatePreviews(); });
+$('btnBack').onclick = () => setReviewing(false);
+$('editForm').addEventListener('input', updateDirty);
+$('editForm').addEventListener('change', updateDirty);
+// "ids" fields: chips with a typing box.
+$('editFields').addEventListener('click', (e) => {
+  const x = e.target.closest('.idchip button');
+  const box = e.target.closest('.idchips');
+  if (x) { const input = box.querySelector('input'); x.closest('.idchip').remove(); syncChips(box); input.focus(); }
+  else if (box && e.target === box) box.querySelector('input').focus();
+});
+$('editFields').addEventListener('keydown', (e) => {
+  const input = e.target.closest('.idchips input');
+  if (!input) return;
+  if ((e.key === 'Enter' || e.key === ',') && input.value.trim()) { e.preventDefault(); commitChips(input); }
+  else if (e.key === 'Backspace' && !input.value) { input.closest('.idchips').querySelector('.idchip:last-of-type')?.remove(); syncChips(input.closest('.idchips')); }
+});
+$('editFields').addEventListener('input', (e) => {
+  const input = e.target.closest('.idchips input');
+  if (!input) return;
+  // A pick from the suggestion list arrives as a replacement; typing "AC-1" must not cut "AC-10" short.
+  const picked = (!e.inputType || e.inputType === 'insertReplacementText') && (state.ids.has(input.value.trim()) || state.data.has(input.value.trim()));
+  if (picked || /[\s,]/.test(input.value.trim())) commitChips(input);
+});
+$('editFields').addEventListener('focusout', (e) => { if (e.target.matches('.idchips input')) commitChips(e.target); });
+$('search').oninput = applyFilters;
+$('search').onkeydown = (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); stepHit(e.shiftKey ? -1 : 1); }
+  else if (e.key === 'Escape') { if ($('search').value) { $('search').value = ''; applyFilters(); } else $('search').blur(); }
+};
+$('btnHitPrev').onclick = () => stepHit(-1);
+$('btnHitNext').onclick = () => stepHit(1);
+$('author').oninput = storeAuthor;
+$('fAuthor').oninput = () => $('fAuthor').classList.remove('is-invalid');
+$('author').onchange = () => {
+  const name = $('author').value.trim();
+  if (state.spec && name) { stampAuthor(name); render(); }
+};
+document.addEventListener('click', (e) => {
+  const ed = e.target.closest('[data-edit]');
+  // A data link is also an anchor; clicking it inside a popup scrolls the page there and closes the popups.
+  if (e.target.closest('.peek a[href^="#"]')) closePeeks(0);
+  const attrSelector = (el, names) => names.filter((n) => el.hasAttribute(n)).map((n) => `[${n}="${CSS.escape(el.getAttribute(n))}"]`).join('');
+  if (ed) { editOpener = { el: ed, selector: attrSelector(ed, ['data-edit', 'data-key']) }; const c = ed.dataset.edit; openEditor(c, c === 'decisions' || c === 'withdrawn' ? +ed.dataset.key : ed.dataset.key, {}); return; }
+  const add = e.target.closest('[data-add]');
+  if (add) { editOpener = { el: add, selector: attrSelector(add, ['data-add', 'data-defaults']) }; openEditor(add.dataset.add, null, JSON.parse(add.dataset.defaults || '{}')); return; }
+  const byIds = e.target.closest('[data-filter-ids]');
+  if (byIds) {
+    const id = byIds.dataset.filterIds;
+    state.filterIds = { label: id, ids: new Set(dataUsers(id)) };
+    state.hitIndex = -1;
+    applyFilters();
+    stepHit(1);
+    return;
+  }
+  const chip = e.target.closest('[data-filter-status]');
+  if (chip) { state.filterStatus = state.filterStatus === chip.dataset.filterStatus ? '' : chip.dataset.filterStatus; renderOverview(); applyFilters(); return; }
+  if (e.target.closest('[data-action="load-terms"]')) { pickTerms(); return; }
+  const cl = e.target.closest('[data-copy-link]');
+  if (cl) {
+    e.preventDefault();
+    const url = location.href.split('#')[0] + '#' + encodeURIComponent(cl.dataset.copyLink);
+    navigator.clipboard.writeText(url).then(() => {
+      cl.classList.add('copied');
+      cl.dataset.tip = 'Copied!';
+      cl.innerHTML = TICK_ICON;
+      clearTimeout(cl._t);
+      cl._t = setTimeout(() => { cl.classList.remove('copied'); cl.dataset.tip = 'Copy link'; cl.innerHTML = LINK_ICON; }, 1500);
+    });
+    return;
+  }
+  const copy = e.target.closest('[data-copy]');
+  if (copy) { navigator.clipboard.writeText(copy.dataset.copy).then(() => { copy.textContent = 'Copied'; setTimeout(() => { copy.textContent = 'Copy Gherkin'; }, 1200); }); }
+});
+window.addEventListener('hashchange', () => goTo(decodeURIComponent(location.hash.slice(1))));
+document.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); save(); }
+  if (e.key === '/' && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) { e.preventDefault(); $('search').focus(); }
+});
+window.addEventListener('beforeunload', (e) => { if (state.dirty) { e.preventDefault(); e.returnValue = ''; } });
+$('filePicker').onchange = async () => {
+  const f = $('filePicker').files[0];
+  if (!f) return;
+  try { load(await f.text(), 'upload', null, f.name); } catch (e) { alert(e.message); }
+  $('filePicker').value = '';
+};
+$('termsPicker').onchange = async () => {
+  const f = $('termsPicker').files[0];
+  if (!f) return;
+  try { loadTerms(await f.text(), `${f.name}, uploaded copy`); } catch (e) { alert(e.message); }
+  $('termsPicker').value = '';
+};
+
+// ---------- sticky heads ----------
+const sticky = { top: 0, sec: 0 };
+/** Measures the top bar, the filter banner and the tallest visible section and sub-section heads, and sets the CSS offsets for the sticky heads. */
+function updateStickyVars() {
+  const tallest = (sel) => Math.max(0, ...[...document.querySelectorAll(sel)].map((el) => el.offsetHeight));
+  const topbar = document.querySelector('.topbar').offsetHeight;
+  const banner = $('filterBanner');
+  sticky.top = topbar + (banner.offsetParent ? banner.offsetHeight + 8 : 0);
+  sticky.sec = tallest('#sections .sec-head');
+  const root = document.documentElement.style;
+  root.setProperty('--topbar-h', `${topbar}px`);
+  root.setProperty('--sticky-top', `${sticky.top}px`);
+  root.setProperty('--sec-head-h', `${sticky.sec}px`);
+  root.setProperty('--sub-head-h', `${tallest('.sub-head')}px`);
+}
+
+// ---------- scroll spy ----------
+/** Highlights the sidebar link of the section at the top of the viewport (and the parent of a sub-section link). */
+function spyToc() {
+  const line = sticky.top + sticky.sec + 24;
+  const links = [...document.querySelectorAll('#toc .nav-link')];
+  let cur = null, best = -Infinity;
+  for (const a of links) {
+    const el = document.getElementById(decodeURIComponent(a.hash.slice(1)));
+    if (!el || el.offsetParent === null) continue;
+    const top = el.getBoundingClientRect().top;
+    if (top <= line && top >= best) { cur = a; best = top; }
+  }
+  // At the bottom of the page the last sections can't reach the top, so the last visible one wins.
+  if (innerHeight + scrollY >= document.documentElement.scrollHeight - 2) {
+    cur = links.filter((a) => document.getElementById(decodeURIComponent(a.hash.slice(1)))?.offsetParent).pop() ?? cur;
+  }
+  let parent = cur;
+  while (parent?.classList.contains('lvl2')) parent = parent.previousElementSibling;
+  links.forEach((a) => { a.classList.toggle('current', a === cur); a.classList.toggle('current-parent', a === parent && a !== cur); });
+  // Keep the highlighted link in view when the sidebar itself scrolls.
+  const sb = cur?.closest('.sidebar');
+  if (sb && sb.scrollHeight > sb.clientHeight) {
+    const [s, l] = [sb.getBoundingClientRect(), cur.getBoundingClientRect()];
+    if (l.top < s.top || l.bottom > s.bottom) sb.scrollTop += l.top - s.top - s.height / 2;
+  }
+}
+let spyQueued = false;
+const queueSpy = () => { if (!spyQueued) { spyQueued = true; requestAnimationFrame(() => { spyQueued = false; spyToc(); }); } };
+window.addEventListener('scroll', queueSpy, { passive: true });
+window.addEventListener('resize', () => { updateStickyVars(); queueSpy(); });
+
+// ---------- start ----------
+(async function start() {
+  try { $('author').value = localStorage.getItem('sbe-spec-author') ?? ''; } catch { /* optional */ }
+  $('fsaHint').classList.toggle('d-none', hasFsa);
+  const param = new URLSearchParams(location.search).get('spec');
+  $('search').value = new URLSearchParams(location.search).get('q') ?? '';
+  // 1. Served over http with ?spec=FILE: read the file next to the page.
+  if (location.protocol.startsWith('http') && param) {
+    try {
+      const url = new URL(param, location.href);
+      const res = await fetch(url, { cache: 'no-store' });
+      if (res.ok) {
+        state.specUrl = url.href;
+        load(await res.text(), 'http', null, url.pathname.split('/').pop());
+        await restoreTerms();
+        return;
+      }
+    } catch (e) { alert(`Could not read ${param}: ${e.message}`); }
+  }
+  // 2. Opened from disk: reuse the file remembered for this page.
+  const h = hasFsa ? await idbGet(specKey()) : undefined;
+  if (h) {
+    if (await h.queryPermission({ mode: 'readwrite' }) === 'granted') { await openHandle(h); return; }
+    $('reconnectName').textContent = h.name;
+    $('btnReconnect').classList.remove('d-none');
+    $('btnReconnect').onclick = () => openHandle(h);
+  }
+  $('emptyState').classList.remove('d-none');
+})();
+</script>
+</body>
+</html>

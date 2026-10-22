@@ -1,0 +1,240 @@
+{
+  "$schema": "./terms.schema.json",
+  "groups": [
+    {
+      "id": "catalogue",
+      "title": "Catalogue"
+    },
+    {
+      "id": "lending",
+      "title": "Lending"
+    },
+    {
+      "id": "members",
+      "title": "Members"
+    }
+  ],
+  "terms": [
+    {
+      "id": "copy",
+      "term": "Copy",
+      "group": "catalogue",
+      "definition": "One physical object of a [[title]]. A copy is lent to one [[member]] at a time.",
+      "uiLabel": "\"Copy\"",
+      "avoid": [
+        "\"item\" (could mean the title or the copy)",
+        "\"exemplar\""
+      ],
+      "status": "active"
+    },
+    {
+      "id": "title",
+      "term": "Title",
+      "group": "catalogue",
+      "definition": "A work the library lends, such as a novel or a DVD, however many [[copy]] of it exist. It sets the [[loan-period]].",
+      "uiLabel": "\"Title\"",
+      "avoid": [
+        "\"book\" (titles also include DVDs)",
+        "\"item\""
+      ],
+      "status": "active"
+    },
+    {
+      "id": "due-date",
+      "term": "Due date",
+      "group": "lending",
+      "definition": "The day by which a [[loan]] must be returned. It has no time of day.",
+      "uiLabel": "\"Due back\"",
+      "avoid": [
+        "\"deadline\"",
+        "\"return date\""
+      ],
+      "status": "active"
+    },
+    {
+      "id": "extension",
+      "term": "Extension",
+      "group": "lending",
+      "definition": "Former name of a [[renewal]].",
+      "uiLabel": "",
+      "avoid": [],
+      "status": "retired",
+      "replacedBy": "renewal",
+      "retiredSince": "2026-01-15"
+    },
+    {
+      "id": "grace-period",
+      "term": "Grace period",
+      "group": "lending",
+      "definition": "The 7 days after the [[due-date]] in which an [[overdue-loan]] can still be renewed.",
+      "uiLabel": "",
+      "avoid": [
+        "\"amnesty\""
+      ],
+      "status": "active"
+    },
+    {
+      "id": "loan",
+      "term": "Loan",
+      "group": "lending",
+      "definition": "A [[member]] borrowing one [[copy]] until its [[due-date]]. A loan ends when the copy is returned.",
+      "uiLabel": "\"Loan\"",
+      "avoid": [
+        "\"checkout\"",
+        "\"rental\""
+      ],
+      "status": "active"
+    },
+    {
+      "id": "loan-period",
+      "term": "Loan period",
+      "group": "lending",
+      "definition": "The number of days a [[copy]] is lent for, set per [[title]]. A novel is 21 days, a DVD 7 days.",
+      "uiLabel": "\"Lending time\"",
+      "avoid": [
+        "\"borrowing period\" (ambiguous: the time a member has had the copy)"
+      ],
+      "status": "active"
+    },
+    {
+      "id": "overdue-loan",
+      "term": "Overdue loan",
+      "group": "lending",
+      "definition": "A [[loan]] whose [[due-date]] is before today and whose [[copy]] is not returned.",
+      "uiLabel": "\"Overdue\"",
+      "avoid": [
+        "\"late loan\""
+      ],
+      "status": "active"
+    },
+    {
+      "id": "renewal",
+      "term": "Renewal",
+      "group": "lending",
+      "definition": "Moving the [[due-date]] of a [[loan]] to a later day, without returning the [[copy]].",
+      "uiLabel": "\"Renew\"",
+      "avoid": [
+        "\"extension\" (retired)",
+        "\"prolongation\""
+      ],
+      "status": "active"
+    },
+    {
+      "id": "renewal-limit",
+      "term": "Renewal limit",
+      "group": "lending",
+      "definition": "How many times one [[loan]] can get a [[renewal]]: 2.",
+      "uiLabel": "",
+      "avoid": [
+        "\"maximum extensions\""
+      ],
+      "status": "active"
+    },
+    {
+      "id": "reservation",
+      "term": "Reservation",
+      "group": "lending",
+      "definition": "A [[member]]'s request for a [[title]] whose [[copy]] objects are all lent. It stays until the member gets a copy or cancels it.",
+      "uiLabel": "\"Reserve\"",
+      "avoid": [
+        "\"hold\""
+      ],
+      "status": "active"
+    },
+    {
+      "id": "member",
+      "term": "Member",
+      "group": "members",
+      "definition": "A person registered with the library who can borrow a [[copy]]. Has a [[member-status]].",
+      "uiLabel": "\"Member\"",
+      "avoid": [
+        "\"customer\"",
+        "\"user\"",
+        "\"patron\""
+      ],
+      "status": "active"
+    },
+    {
+      "id": "member-status",
+      "term": "Member status",
+      "group": "members",
+      "definition": "Whether a [[member]] may borrow and renew: `active` or `suspended`. A member is suspended, for example, because of unpaid fees.",
+      "uiLabel": "\"Account status\"",
+      "avoid": [],
+      "status": "active"
+    },
+    {
+      "id": "staff-member",
+      "term": "Staff member",
+      "group": "members",
+      "definition": "A library employee who works with a [[loan]] at the desk on behalf of a [[member]].",
+      "uiLabel": "\"Librarian\"",
+      "avoid": [
+        "\"admin\""
+      ],
+      "status": "active"
+    }
+  ],
+  "questions": [
+    {
+      "id": "Q-01",
+      "title": "Does a suspended member keep their reservations?",
+      "status": "resolved",
+      "terms": [
+        "member-status",
+        "reservation"
+      ],
+      "text": "A suspended [[member]] (see [[member-status]]) can no longer borrow. It is unclear whether their [[reservation]] still blocks the renewals of other members.",
+      "resolution": "Yes. The reservation stays and blocks renewals until the member cancels it or the library removes it. Decided by the head of lending on 2026-10-14."
+    },
+    {
+      "id": "Q-02",
+      "title": "Does a renewal by a staff member count towards the renewal limit?",
+      "status": "open",
+      "terms": [
+        "renewal",
+        "renewal-limit",
+        "staff-member"
+      ],
+      "text": "A [[staff-member]] can renew beyond the [[renewal-limit]]. We have not decided whether such a [[renewal]] counts, so that the member can no longer renew online afterwards.",
+      "resolution": ""
+    }
+  ],
+  "changelog": [
+    {
+      "date": "2026-10-12",
+      "author": "Jane Doe",
+      "action": "added",
+      "ref": "",
+      "summary": "Initial terms of the library lending domain."
+    },
+    {
+      "date": "2026-10-14",
+      "author": "Jane Doe",
+      "action": "question",
+      "ref": "Q-01",
+      "summary": "Asked whether a suspended member keeps their reservations."
+    },
+    {
+      "date": "2026-10-14",
+      "author": "Jane Doe",
+      "action": "changed",
+      "ref": "Q-01",
+      "summary": "Resolved: the reservation stays."
+    },
+    {
+      "date": "2026-10-15",
+      "author": "John Roe",
+      "action": "retired",
+      "ref": "extension",
+      "summary": "Retired \"Extension\" in favour of \"Renewal\", which is the word on the website."
+    },
+    {
+      "date": "2026-10-20",
+      "author": "John Roe",
+      "action": "question",
+      "ref": "Q-02",
+      "summary": "Asked whether a renewal by a staff member counts towards the limit."
+    }
+  ]
+}

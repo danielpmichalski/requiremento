@@ -1,0 +1,1186 @@
+{
+  "$schema": "specs.schema.json",
+  "meta": {
+    "key": "LIB-101",
+    "title": "Renew a loan online",
+    "fullTitle": "Renew a loan online (members at home, staff at the desk)",
+    "version": "1.2",
+    "date": "2026-10-20",
+    "status": "Awaiting product owner approval",
+    "approvedBy": "",
+    "approvedOn": "",
+    "related": [
+      {
+        "label": "Lending policy of the library",
+        "path": "docs/lending-policy.md"
+      },
+      {
+        "label": "Email templates",
+        "path": "docs/email-templates.md"
+      }
+    ],
+    "precedence": "This document is the requirements baseline of LIB-101. Where the lending policy describes renewals differently, this document wins.",
+    "termsFile": "../terms/terms.json"
+  },
+  "sections": [
+    {
+      "id": "document-control",
+      "title": "Document control",
+      "body": "**Status of a criterion.** Every acceptance criterion (AC) has one status:\n\n| Status | Meaning |\n|---|---|\n| Draft | Not decided yet. |\n| Not yet implemented | The product owner decided the behaviour. It is not built yet. |\n| Implemented | The behaviour is built and was verified against the system on 2026-10-16. |\n| Known limitation | An accepted deviation. Section 8 describes it. |\n| Non-binding target | Only for AC-11. It becomes binding once the open question Q-LOAN-02 is answered. |\n\n**IDs.** `AC-` IDs and their sub-IDs (for example `AC-02a`), `RULE-LOAN-`, `EX-LOAN-`, `ASM-LOAN-` and `R-LOAN-` IDs are stable. Tests refer to them. Withdrawn IDs are listed in Appendix A2 and are never reused.\n\n`KL-` IDs number the known limitations of this document. A parent AC keeps its full meaning, and its sub-ACs refine parts of it.",
+      "list": "meta"
+    },
+    {
+      "id": "description",
+      "title": "1. Description",
+      "body": "Library members want to renew a loan themselves, at home, instead of coming to the desk. Today only a [[staff-member]] can renew a [[loan]].\n\nLIB-101 adds the button \"Renew\" to the list of loans in the member account. A renewal moves the [[due-date]] to a later day if the library's rules allow it, and tells the [[member]] the reason if they do not. Staff get the same button at the desk, with two exceptions to the rules."
+    },
+    {
+      "id": "scope",
+      "title": "2. Scope",
+      "body": "**In scope**\n- Renewing one loan at a time, by a member or by a staff member.\n- The rules that allow or refuse a renewal, and the message that names the reason.\n- The confirmation email.\n\n**Out of scope**\n- Renewing several loans at once.\n- Paying fees. A suspended [[member]] pays at the desk.\n- Changing the [[loan-period]] of a [[title]]."
+    },
+    {
+      "id": "terms",
+      "title": "3. Terms",
+      "body": "The terms are defined once, in the shared terms file, and linked from here. The list shows the terms this specification relies on.",
+      "list": "terms"
+    },
+    {
+      "id": "roles",
+      "title": "4. Roles and rights per action",
+      "body": "| Action | Member (active) | Member (suspended) | Staff member |\n|---|---|---|---|\n| See own loans | yes | yes | yes, of any member |\n| Renew a loan within all rules | yes | no | yes |\n| Renew beyond the [[renewal-limit]] | no | no | yes |\n| Renew an [[overdue-loan]] after the [[grace-period]] | no | no | yes |\n| Renew a loan with a [[reservation]] by another member | no | no | no |"
+    },
+    {
+      "id": "reference-data",
+      "title": "5. Reference data set",
+      "body": "All examples and test cases use these data. **Today is 2026-03-10.** Dates are in the library's time zone.",
+      "list": "data",
+      "after": "The reservations and loans above are set up fresh for every test. A test only changes the data of the loan it renews."
+    },
+    {
+      "id": "rules",
+      "title": "6. Business rules and examples",
+      "body": "Each rule has at least one example. The examples use the reference data set.",
+      "list": "rules"
+    },
+    {
+      "id": "acceptance-criteria",
+      "title": "7. Acceptance criteria",
+      "body": "The scenarios are written in Gherkin, so they can be copied into a test tool.",
+      "list": "acceptanceCriteria"
+    },
+    {
+      "id": "known-limitations",
+      "title": "8. Known limitations",
+      "body": "",
+      "list": "limitations"
+    },
+    {
+      "id": "assumptions",
+      "title": "9. Assumptions",
+      "body": "",
+      "list": "assumptions"
+    },
+    {
+      "id": "risks",
+      "title": "10. Acceptance risks",
+      "body": "Likelihood and impact are rated 1 (low) to 3 (high).",
+      "list": "risks"
+    },
+    {
+      "id": "traceability",
+      "title": "11. Traceability",
+      "body": "Generated from the stories and acceptance criteria.",
+      "list": "traceability"
+    },
+    {
+      "id": "test-cases",
+      "title": "12. Test cases",
+      "body": "The test cases cover the acceptance criteria. Each lists the rules and examples it uses.",
+      "list": "testCases",
+      "after": "### 12.1 Entry and exit criteria\n\n**Entry**\n- The build is deployed to the test environment, with the reference data set loaded.\n- The email server of the test environment is reachable.\n\n**Exit**\n- Every test case of priority High has passed.\n- No open defect of severity High."
+    },
+    {
+      "id": "open-questions",
+      "title": "13. Open questions",
+      "body": "",
+      "list": "questions"
+    },
+    {
+      "id": "decision-log",
+      "title": "Appendix A — Decision log",
+      "body": "",
+      "list": "decisions",
+      "after": "**ID changes in version 1.1:** the reservation rule (RULE-LOAN-03) now says \"another member\". Earlier text did not exclude a member's own reservation."
+    },
+    {
+      "id": "withdrawn-ids",
+      "title": "Appendix A2 — Withdrawn IDs",
+      "body": "These IDs were used in earlier versions. They are not reused.",
+      "list": "withdrawn"
+    }
+  ],
+  "terms": [
+    "copy",
+    "title",
+    "loan",
+    "loan-period",
+    "due-date",
+    "overdue-loan",
+    "grace-period",
+    "renewal",
+    "renewal-limit",
+    "reservation",
+    "member",
+    "member-status",
+    "staff-member"
+  ],
+  "dataKinds": [
+    {
+      "id": "member",
+      "label": "Member",
+      "title": "Members",
+      "columns": [
+        "Status",
+        "Email",
+        "Note"
+      ],
+      "derived": [
+        {
+          "title": "Loans",
+          "kind": "loan",
+          "column": "Member"
+        }
+      ]
+    },
+    {
+      "id": "title",
+      "label": "Title",
+      "title": "Titles",
+      "columns": [
+        "Name",
+        "Loan period",
+        "Note"
+      ],
+      "derived": [
+        {
+          "title": "Copies",
+          "kind": "copy",
+          "column": "Title"
+        }
+      ]
+    },
+    {
+      "id": "copy",
+      "label": "Copy",
+      "title": "Copies",
+      "columns": [
+        "Title",
+        "Note"
+      ]
+    },
+    {
+      "id": "loan",
+      "label": "Loan",
+      "title": "Loans",
+      "columns": [
+        "Member",
+        "Copy",
+        "Due date",
+        "Renewals",
+        "Note"
+      ]
+    },
+    {
+      "id": "reservation",
+      "label": "Reservation",
+      "title": "Reservations",
+      "columns": [
+        "Title",
+        "Member",
+        "Note"
+      ]
+    }
+  ],
+  "data": [
+    {
+      "id": "MEM-1",
+      "kind": "member",
+      "values": {
+        "Status": "active",
+        "Email": "anna@example.org",
+        "Note": "Anna, the main example member."
+      }
+    },
+    {
+      "id": "MEM-2",
+      "kind": "member",
+      "values": {
+        "Status": "active",
+        "Email": "ben@example.org",
+        "Note": "Ben"
+      }
+    },
+    {
+      "id": "MEM-3",
+      "kind": "member",
+      "values": {
+        "Status": "suspended",
+        "Email": "carla@example.org",
+        "Note": "Carla, unpaid fees"
+      }
+    },
+    {
+      "id": "MEM-4",
+      "kind": "member",
+      "values": {
+        "Status": "active",
+        "Email": "desk@example.org",
+        "Note": "Dev, a staff member at the desk"
+      }
+    },
+    {
+      "id": "MEM-5",
+      "kind": "member",
+      "values": {
+        "Status": "active",
+        "Note": "Eve, has no email address on file"
+      },
+      "testOnly": true
+    },
+    {
+      "id": "TI-1",
+      "kind": "title",
+      "values": {
+        "Name": "Novel",
+        "Loan period": "21 days"
+      }
+    },
+    {
+      "id": "TI-2",
+      "kind": "title",
+      "values": {
+        "Name": "DVD",
+        "Loan period": "7 days"
+      }
+    },
+    {
+      "id": "TI-3",
+      "kind": "title",
+      "values": {
+        "Name": "Atlas",
+        "Loan period": "14 days"
+      }
+    },
+    {
+      "id": "TI-4",
+      "kind": "title",
+      "values": {
+        "Name": "Cookbook",
+        "Loan period": "21 days"
+      }
+    },
+    {
+      "id": "TI-5",
+      "kind": "title",
+      "values": {
+        "Name": "Poetry collection",
+        "Loan period": "21 days"
+      }
+    },
+    {
+      "id": "CP-1",
+      "kind": "copy",
+      "values": {
+        "Title": "TI-1"
+      }
+    },
+    {
+      "id": "CP-2",
+      "kind": "copy",
+      "values": {
+        "Title": "TI-1"
+      }
+    },
+    {
+      "id": "CP-3",
+      "kind": "copy",
+      "values": {
+        "Title": "TI-2"
+      }
+    },
+    {
+      "id": "CP-4",
+      "kind": "copy",
+      "values": {
+        "Title": "TI-3"
+      }
+    },
+    {
+      "id": "CP-5",
+      "kind": "copy",
+      "values": {
+        "Title": "TI-1"
+      }
+    },
+    {
+      "id": "CP-6",
+      "kind": "copy",
+      "values": {
+        "Title": "TI-4"
+      }
+    },
+    {
+      "id": "CP-7",
+      "kind": "copy",
+      "values": {
+        "Title": "TI-2"
+      }
+    },
+    {
+      "id": "CP-8",
+      "kind": "copy",
+      "values": {
+        "Title": "TI-2"
+      }
+    },
+    {
+      "id": "CP-9",
+      "kind": "copy",
+      "values": {
+        "Title": "TI-5"
+      }
+    },
+    {
+      "id": "CP-10",
+      "kind": "copy",
+      "values": {
+        "Title": "TI-3"
+      }
+    },
+    {
+      "id": "LN-1",
+      "kind": "loan",
+      "values": {
+        "Member": "MEM-1",
+        "Copy": "CP-1",
+        "Due date": "2026-03-12",
+        "Renewals": "0",
+        "Note": "The plain case."
+      }
+    },
+    {
+      "id": "LN-2",
+      "kind": "loan",
+      "values": {
+        "Member": "MEM-1",
+        "Copy": "CP-3",
+        "Due date": "2026-03-12",
+        "Renewals": "2",
+        "Note": "At the renewal limit."
+      }
+    },
+    {
+      "id": "LN-3",
+      "kind": "loan",
+      "values": {
+        "Member": "MEM-1",
+        "Copy": "CP-4",
+        "Due date": "2026-03-12",
+        "Renewals": "0",
+        "Note": "RV-1 by MEM-2 is waiting for this title."
+      }
+    },
+    {
+      "id": "LN-4",
+      "kind": "loan",
+      "values": {
+        "Member": "MEM-2",
+        "Copy": "CP-2",
+        "Due date": "2026-03-06",
+        "Renewals": "0",
+        "Note": "Overdue by 4 days."
+      }
+    },
+    {
+      "id": "LN-5",
+      "kind": "loan",
+      "values": {
+        "Member": "MEM-2",
+        "Copy": "CP-5",
+        "Due date": "2026-02-25",
+        "Renewals": "0",
+        "Note": "Overdue by 13 days."
+      }
+    },
+    {
+      "id": "LN-6",
+      "kind": "loan",
+      "values": {
+        "Member": "MEM-3",
+        "Copy": "CP-6",
+        "Due date": "2026-03-12",
+        "Renewals": "2",
+        "Note": "Suspended member, at the limit, and MEM-1 reserved this title (RV-2)."
+      }
+    },
+    {
+      "id": "LN-7",
+      "kind": "loan",
+      "values": {
+        "Member": "MEM-2",
+        "Copy": "CP-7",
+        "Due date": "2026-03-03",
+        "Renewals": "0",
+        "Note": "Overdue by exactly 7 days."
+      }
+    },
+    {
+      "id": "LN-8",
+      "kind": "loan",
+      "values": {
+        "Member": "MEM-2",
+        "Copy": "CP-8",
+        "Due date": "2026-03-14",
+        "Renewals": "1",
+        "Note": "One renewal left."
+      }
+    },
+    {
+      "id": "LN-9",
+      "kind": "loan",
+      "values": {
+        "Member": "MEM-1",
+        "Copy": "CP-9",
+        "Due date": "2026-03-12",
+        "Renewals": "0",
+        "Note": "MEM-1 has a reservation on this title too (RV-3)."
+      }
+    },
+    {
+      "id": "LN-10",
+      "kind": "loan",
+      "values": {
+        "Member": "MEM-1",
+        "Copy": "CP-10",
+        "Due date": "2026-03-12",
+        "Renewals": "2",
+        "Note": "At the limit, and RV-1 by MEM-2 is waiting for this title."
+      }
+    },
+    {
+      "id": "RV-1",
+      "kind": "reservation",
+      "values": {
+        "Title": "TI-3",
+        "Member": "MEM-2"
+      }
+    },
+    {
+      "id": "RV-2",
+      "kind": "reservation",
+      "values": {
+        "Title": "TI-4",
+        "Member": "MEM-1"
+      }
+    },
+    {
+      "id": "RV-3",
+      "kind": "reservation",
+      "values": {
+        "Title": "TI-5",
+        "Member": "MEM-1",
+        "Note": "A member's own reservation."
+      }
+    }
+  ],
+  "stories": [
+    {
+      "id": "US-LOAN-01",
+      "title": "Renew a loan",
+      "text": "As a member, I want to renew a loan online, so that I can keep a copy a little longer without going to the library.",
+      "setup": "",
+      "readiness": "Ready"
+    },
+    {
+      "id": "US-LOAN-02",
+      "title": "Renew an overdue loan",
+      "text": "As a member who forgot a due date, I want to renew an overdue loan shortly after it, so that I do not have to rush to the library.",
+      "setup": "",
+      "readiness": "Ready"
+    },
+    {
+      "id": "US-LOAN-03",
+      "title": "Understand the outcome",
+      "text": "As a member, I want to be told why a renewal was refused and get a confirmation when it worked, so that I know what to do next.",
+      "setup": "",
+      "readiness": "Ready"
+    },
+    {
+      "id": "US-LOAN-04",
+      "title": "Renew for a member at the desk",
+      "text": "As a staff member, I want to renew a loan for a member who stands at the desk, even where the online rules would refuse it.",
+      "setup": "Needs a staff login.",
+      "readiness": "Needs clarification (Q-LOAN-01)"
+    },
+    {
+      "id": "US-LOAN-05",
+      "title": "Renew without waiting",
+      "text": "As a member, I want a renewal to answer quickly, so that I do not retry and renew twice.",
+      "setup": "",
+      "readiness": "Ready"
+    }
+  ],
+  "ruleGroups": [
+    {
+      "id": "6.1",
+      "title": "Renewing a loan",
+      "story": "US-LOAN-01",
+      "note": ""
+    },
+    {
+      "id": "6.2",
+      "title": "Overdue loans",
+      "story": "US-LOAN-02",
+      "note": "An overdue loan is renewed from today, not from the old due date."
+    },
+    {
+      "id": "6.3",
+      "title": "The outcome message",
+      "story": "US-LOAN-03",
+      "note": ""
+    },
+    {
+      "id": "6.4",
+      "title": "Staff at the desk",
+      "story": "US-LOAN-04",
+      "note": ""
+    },
+    {
+      "id": "6.5",
+      "title": "Speed",
+      "story": "US-LOAN-05",
+      "note": ""
+    }
+  ],
+  "rules": [
+    {
+      "id": "RULE-LOAN-01",
+      "group": "6.1",
+      "statement": "A [[renewal]] of a loan that is not overdue sets the new [[due-date]] to the current due date plus the [[loan-period]] of the [[title]]."
+    },
+    {
+      "id": "RULE-LOAN-02",
+      "group": "6.1",
+      "statement": "A [[loan]] can be renewed at most twice (the [[renewal-limit]]). The count is per loan, not per member."
+    },
+    {
+      "id": "RULE-LOAN-03",
+      "group": "6.1",
+      "statement": "A loan can't be renewed while another [[member]] has a [[reservation]] on its title. A member's own reservation doesn't count."
+    },
+    {
+      "id": "RULE-LOAN-04",
+      "group": "6.1",
+      "statement": "Only a member with the [[member-status]] `active` can renew a loan."
+    },
+    {
+      "id": "RULE-LOAN-05",
+      "group": "6.2",
+      "statement": "An [[overdue-loan]] can be renewed only within the [[grace-period]]: up to and including the 7th day after its due date."
+    },
+    {
+      "id": "RULE-LOAN-06",
+      "group": "6.2",
+      "statement": "The new due date of an overdue loan is today plus the loan period. The old due date is ignored."
+    },
+    {
+      "id": "RULE-LOAN-07",
+      "group": "6.3",
+      "statement": "A refused renewal names exactly one reason, the first that applies in this order: member status, reservation, renewal limit, grace period."
+    },
+    {
+      "id": "RULE-LOAN-08",
+      "group": "6.3",
+      "statement": "A successful renewal sends an email with the new due date to the member of the loan."
+    },
+    {
+      "id": "RULE-LOAN-09",
+      "group": "6.4",
+      "statement": "A [[staff-member]] can renew beyond the renewal limit and beyond the grace period. Member status and reservations still apply to them."
+    },
+    {
+      "id": "RULE-LOAN-11",
+      "group": "6.5",
+      "statement": "A renewal answers within 2 seconds for 95 % of requests."
+    }
+  ],
+  "examples": [
+    {
+      "id": "EX-LOAN-01",
+      "rule": "RULE-LOAN-01",
+      "text": "MEM-1 renews LN-1 on 2026-03-10. The novel is lent for 21 days, so the new due date is 2026-04-02 (2026-03-12 + 21 days), not 2026-03-31."
+    },
+    {
+      "id": "EX-LOAN-02",
+      "rule": "RULE-LOAN-01",
+      "text": "MEM-2 renews LN-8, a DVD that is lent for 7 days. The new due date is 2026-03-21, and the loan now has 2 renewals."
+    },
+    {
+      "id": "EX-LOAN-03",
+      "rule": "RULE-LOAN-02",
+      "text": "MEM-1 renews LN-2, which has 2 renewals. The renewal is refused with the reason \"renewal limit\"."
+    },
+    {
+      "id": "EX-LOAN-04",
+      "rule": "RULE-LOAN-02",
+      "text": "MEM-1 has LN-2 at the limit and LN-1 without renewals. Renewing LN-1 is allowed: the limit is per loan."
+    },
+    {
+      "id": "EX-LOAN-05",
+      "rule": "RULE-LOAN-03",
+      "text": "MEM-1 renews LN-3. MEM-2 has a reservation (RV-1) on the atlas, so the renewal is refused with the reason \"reservation\"."
+    },
+    {
+      "id": "EX-LOAN-06",
+      "rule": "RULE-LOAN-03",
+      "text": "MEM-1 renews LN-9. The only reservation on the poetry collection is MEM-1's own (RV-3), so the renewal is allowed. The new due date is 2026-04-02."
+    },
+    {
+      "id": "EX-LOAN-07",
+      "rule": "RULE-LOAN-04",
+      "text": "MEM-3, who is suspended, renews LN-6 online. The renewal is refused with the reason \"member status\"."
+    },
+    {
+      "id": "EX-LOAN-08",
+      "rule": "RULE-LOAN-05",
+      "text": "MEM-2 renews LN-4, which is 4 days overdue. The renewal is allowed."
+    },
+    {
+      "id": "EX-LOAN-09",
+      "rule": "RULE-LOAN-05",
+      "text": "MEM-2 renews LN-7, which is overdue by exactly 7 days. The renewal is allowed: the 7th day still counts."
+    },
+    {
+      "id": "EX-LOAN-10",
+      "rule": "RULE-LOAN-05",
+      "text": "MEM-2 renews LN-5, which is 13 days overdue. The renewal is refused with the reason \"grace period\"."
+    },
+    {
+      "id": "EX-LOAN-11",
+      "rule": "RULE-LOAN-06",
+      "text": "MEM-2 renews LN-4 (due 2026-03-06) on 2026-03-10. The new due date is 2026-03-31 (today + 21 days), not 2026-03-27."
+    },
+    {
+      "id": "EX-LOAN-12",
+      "rule": "RULE-LOAN-06",
+      "text": "MEM-2 renews LN-7 (due 2026-03-03) on 2026-03-10. The new due date is 2026-03-17 (today + 7 days)."
+    },
+    {
+      "id": "EX-LOAN-13",
+      "rule": "RULE-LOAN-07",
+      "text": "MEM-3 renews LN-6. Three reasons apply: MEM-3 is suspended, MEM-1 has a reservation (RV-2) and LN-6 is at the limit. The message names only \"member status\"."
+    },
+    {
+      "id": "EX-LOAN-14",
+      "rule": "RULE-LOAN-07",
+      "text": "MEM-1 renews LN-10, which is at the limit, and MEM-2 has a reservation (RV-1) on the atlas. The message names \"reservation\", not \"renewal limit\"."
+    },
+    {
+      "id": "EX-LOAN-15",
+      "rule": "RULE-LOAN-08",
+      "text": "MEM-1 renews LN-1. An email to anna@example.org says that the new due date is 2026-04-02."
+    },
+    {
+      "id": "EX-LOAN-16",
+      "rule": "RULE-LOAN-09",
+      "text": "MEM-4 (staff) renews LN-2 for MEM-1. The loan is at the limit, but the renewal is allowed. The new due date is 2026-03-19 and the loan has 3 renewals."
+    },
+    {
+      "id": "EX-LOAN-17",
+      "rule": "RULE-LOAN-09",
+      "text": "MEM-4 (staff) renews LN-3. The reservation RV-1 still applies, so the renewal is refused with the reason \"reservation\"."
+    },
+    {
+      "id": "EX-LOAN-18",
+      "rule": "RULE-LOAN-09",
+      "text": "MEM-4 (staff) renews LN-5, which is 13 days overdue. The renewal is allowed, and the new due date is 2026-03-31."
+    },
+    {
+      "id": "EX-LOAN-19",
+      "rule": "RULE-LOAN-11",
+      "text": "At the busiest hour of the day, 500 members renew a loan within one minute. At least 475 of the 500 renewals are answered within 2 seconds."
+    }
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "AC-01",
+      "story": "US-LOAN-01",
+      "title": "Renew a loan that is not overdue",
+      "status": "implemented",
+      "statusNote": "",
+      "rules": [
+        "RULE-LOAN-01"
+      ],
+      "examples": [
+        "EX-LOAN-01",
+        "EX-LOAN-02"
+      ],
+      "description": "",
+      "scenarios": [
+        "Scenario Outline: A renewal moves the due date by the loan period\n  Given today is 2026-03-10\n  And <loan> has the due date <due date>\n  When its member renews <loan>\n  Then the due date of <loan> is <new due date>\n\n  Examples:\n    | loan | due date | new due date |\n    | LN-1 | 2026-03-12 | 2026-04-02 |\n    | LN-8 | 2026-03-14 | 2026-03-21 |"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "AC-02",
+      "story": "US-LOAN-01",
+      "title": "The renewal limit",
+      "status": "implemented",
+      "statusNote": "",
+      "rules": [
+        "RULE-LOAN-02"
+      ],
+      "examples": [
+        "EX-LOAN-03"
+      ],
+      "description": "",
+      "scenarios": [
+        "Scenario: A loan at the renewal limit can't be renewed\n  Given LN-2 has 2 renewals\n  When MEM-1 renews LN-2\n  Then the renewal is refused\n  And the message says \"You have renewed this loan twice already.\"\n  And the due date of LN-2 is still 2026-03-12"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "AC-02a",
+      "story": "US-LOAN-01",
+      "title": "The limit is per loan",
+      "status": "pending",
+      "statusNote": "The member account counts all renewals of the member since the last release. This is being fixed.",
+      "rules": [
+        "RULE-LOAN-02"
+      ],
+      "examples": [
+        "EX-LOAN-04"
+      ],
+      "description": "",
+      "scenarios": [
+        "Scenario: Another loan of the same member can still be renewed\n  Given MEM-1 has LN-2 with 2 renewals and LN-1 with none\n  When MEM-1 renews LN-1\n  Then the renewal is allowed"
+      ],
+      "notes": "Refines AC-02."
+    },
+    {
+      "id": "AC-03",
+      "story": "US-LOAN-01",
+      "title": "A reservation by another member blocks the renewal",
+      "status": "implemented",
+      "statusNote": "",
+      "rules": [
+        "RULE-LOAN-03"
+      ],
+      "examples": [
+        "EX-LOAN-05",
+        "EX-LOAN-06"
+      ],
+      "description": "",
+      "scenarios": [
+        "Scenario: Another member is waiting for the title\n  Given MEM-2 has the reservation RV-1 on TI-3\n  When MEM-1 renews LN-3\n  Then the renewal is refused\n  And the message says \"Another member is waiting for this title.\"",
+        "Scenario: The member's own reservation does not block\n  Given MEM-1 has the reservation RV-3 on TI-5\n  When MEM-1 renews LN-9\n  Then the renewal is allowed\n  And the due date of LN-9 is 2026-04-02"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "AC-04",
+      "story": "US-LOAN-01",
+      "title": "A suspended member can't renew",
+      "status": "implemented",
+      "statusNote": "",
+      "rules": [
+        "RULE-LOAN-04"
+      ],
+      "examples": [
+        "EX-LOAN-07"
+      ],
+      "description": "",
+      "scenarios": [
+        "Scenario: A suspended member renews online\n  Given MEM-3 is suspended\n  When MEM-3 renews LN-6\n  Then the renewal is refused\n  And the message says \"Your account is suspended. Please visit the desk.\""
+      ],
+      "notes": ""
+    },
+    {
+      "id": "AC-05",
+      "story": "US-LOAN-02",
+      "title": "Renew an overdue loan within the grace period",
+      "status": "implemented",
+      "statusNote": "",
+      "rules": [
+        "RULE-LOAN-05",
+        "RULE-LOAN-06"
+      ],
+      "examples": [
+        "EX-LOAN-08",
+        "EX-LOAN-09",
+        "EX-LOAN-11",
+        "EX-LOAN-12"
+      ],
+      "description": "",
+      "scenarios": [
+        "Scenario Outline: The loan period counts from today\n  Given today is 2026-03-10\n  And <loan> is overdue by <days> days\n  When MEM-2 renews <loan>\n  Then the renewal is allowed\n  And the due date of <loan> is <new due date>\n\n  Examples:\n    | loan | days | new due date |\n    | LN-4 | 4 | 2026-03-31 |\n    | LN-7 | 7 | 2026-03-17 |"
+      ],
+      "notes": "The second row is the boundary: the 7th day is still inside the grace period."
+    },
+    {
+      "id": "AC-06",
+      "story": "US-LOAN-02",
+      "title": "Refuse an overdue loan after the grace period",
+      "status": "implemented",
+      "statusNote": "",
+      "rules": [
+        "RULE-LOAN-05"
+      ],
+      "examples": [
+        "EX-LOAN-10"
+      ],
+      "description": "",
+      "scenarios": [
+        "Scenario: Overdue by more than 7 days\n  Given LN-5 is overdue by 13 days\n  When MEM-2 renews LN-5\n  Then the renewal is refused\n  And the message says \"This loan is too late to renew. Please return the copy.\""
+      ],
+      "notes": ""
+    },
+    {
+      "id": "AC-07",
+      "story": "US-LOAN-03",
+      "title": "One reason, in a fixed order",
+      "status": "implemented",
+      "statusNote": "",
+      "rules": [
+        "RULE-LOAN-07"
+      ],
+      "examples": [
+        "EX-LOAN-13",
+        "EX-LOAN-14"
+      ],
+      "description": "",
+      "scenarios": [
+        "Scenario Outline: Several reasons apply\n  Given <situation>\n  When <member> renews <loan>\n  Then the renewal is refused\n  And the message names only the reason \"<reason>\"\n\n  Examples:\n    | situation | member | loan | reason |\n    | MEM-3 is suspended, RV-2 exists and LN-6 is at the limit | MEM-3 | LN-6 | member status |\n    | RV-1 exists and LN-10 is at the limit | MEM-1 | LN-10 | reservation |"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "AC-08",
+      "story": "US-LOAN-03",
+      "title": "Confirmation email",
+      "status": "pending",
+      "statusNote": "The email template is not approved yet.",
+      "rules": [
+        "RULE-LOAN-08"
+      ],
+      "examples": [
+        "EX-LOAN-15"
+      ],
+      "description": "",
+      "scenarios": [
+        "Scenario: Email after a successful renewal\n  When MEM-1 renews LN-1\n  Then an email goes to anna@example.org\n  And it says that the new due date is 2026-04-02"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "AC-09",
+      "story": "US-LOAN-04",
+      "title": "Staff renew beyond the limit and the grace period",
+      "status": "draft",
+      "statusNote": "Waits for Q-LOAN-01.",
+      "rules": [
+        "RULE-LOAN-09"
+      ],
+      "examples": [
+        "EX-LOAN-16",
+        "EX-LOAN-17",
+        "EX-LOAN-18"
+      ],
+      "description": "",
+      "scenarios": [
+        "Scenario: Staff renew a loan at the limit\n  Given LN-2 has 2 renewals\n  When MEM-4 renews LN-2 for MEM-1\n  Then the renewal is allowed\n  And the due date of LN-2 is 2026-03-19",
+        "Scenario: Staff can't renew past a reservation\n  Given MEM-2 has the reservation RV-1 on TI-3\n  When MEM-4 renews LN-3 for MEM-1\n  Then the renewal is refused with the reason \"reservation\"",
+        "Scenario: Staff renew an overdue loan after the grace period\n  Given LN-5 is overdue by 13 days\n  When MEM-4 renews LN-5 for MEM-2\n  Then the renewal is allowed\n  And the due date of LN-5 is 2026-03-31"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "AC-10",
+      "story": "US-LOAN-03",
+      "title": "Refusal reason in the mobile app",
+      "status": "known-limitation",
+      "statusNote": "KL-01.",
+      "rules": [
+        "RULE-LOAN-07"
+      ],
+      "examples": [],
+      "description": "The mobile app shows the message \"Renewal not possible\" for every refusal, not the reason. KL-01 describes the behaviour. It is not a requirement.",
+      "scenarios": [],
+      "notes": ""
+    },
+    {
+      "id": "AC-11",
+      "story": "US-LOAN-05",
+      "title": "Response time of a renewal",
+      "status": "target",
+      "statusNote": "It becomes binding once Q-LOAN-02 names the reference load.",
+      "rules": [
+        "RULE-LOAN-11"
+      ],
+      "examples": [
+        "EX-LOAN-19"
+      ],
+      "description": "Measurement method:\n- **Metric:** the time from the click on \"Renew\" to the answer in the browser.\n- **Statistic:** the 95th percentile of all requests of a 10-minute run.\n- **Environment:** the test environment with a copy of the production data.\n- **Target:** at most 2 seconds.",
+      "scenarios": [],
+      "notes": ""
+    }
+  ],
+  "testCases": [
+    {
+      "id": "TC-01",
+      "title": "Renew a plain loan and a short loan",
+      "acs": [
+        "AC-01",
+        "AC-08"
+      ],
+      "status": "draft",
+      "steps": "**Objective.** A renewal moves the due date by the loan period of the title.\n\n**Preconditions.** Today is 2026-03-10. MEM-1 is logged in and has LN-1. MEM-2 has LN-8.\n\n**Steps**\n1. As MEM-1, open \"My loans\" and click \"Renew\" on LN-1.\n2. Log in as MEM-2 and click \"Renew\" on LN-8.\n\n**Expected result**\n- LN-1 is due 2026-04-02 and has 1 renewal.\n- LN-8 is due 2026-03-21 and has 2 renewals.\n- anna@example.org receives an email with 2026-04-02.",
+      "automation": "",
+      "notes": "**Suite** A (renew). **Priority** High. **Automation candidate** Yes (e2e UI).\n\n**Technique.** Boundary values of the loan period; use case testing.\n\n**Rules and examples.** RULE-LOAN-01, RULE-LOAN-08, EX-LOAN-01, EX-LOAN-02, EX-LOAN-15."
+    },
+    {
+      "id": "TC-02",
+      "title": "The renewal limit is per loan",
+      "acs": [
+        "AC-02",
+        "AC-02a"
+      ],
+      "status": "draft",
+      "steps": "**Objective.** A loan at the limit is refused, and another loan of the same member is not.\n\n**Preconditions.** MEM-1 is logged in and has LN-2 (2 renewals) and LN-1 (none).\n\n**Steps**\n1. Click \"Renew\" on LN-2.\n2. Click \"Renew\" on LN-1.\n\n**Expected result**\n- Step 1 is refused with \"You have renewed this loan twice already.\" The due date does not change.\n- Step 2 succeeds.",
+      "automation": "",
+      "notes": "**Suite** A (renew). **Priority** High. **Automation candidate** Yes (API).\n\n**Technique.** Boundary value analysis of the renewal count (1, 2).\n\n**Rules and examples.** RULE-LOAN-02, EX-LOAN-03, EX-LOAN-04."
+    },
+    {
+      "id": "TC-03",
+      "title": "Reservations and member status",
+      "acs": [
+        "AC-03",
+        "AC-04"
+      ],
+      "status": "draft",
+      "steps": "**Objective.** Reservations of other members and suspended accounts block a renewal.\n\n**Preconditions.** The reference data set is loaded. MEM-5 exists but has no loans.\n\n**Steps**\n1. As MEM-1, renew LN-3.\n2. As MEM-1, renew LN-9.\n3. As MEM-3, renew LN-6.\n\n**Expected result**\n- Step 1 is refused: \"Another member is waiting for this title.\"\n- Step 2 succeeds, due 2026-04-02.\n- Step 3 is refused: \"Your account is suspended. Please visit the desk.\"",
+      "automation": "",
+      "notes": "**Suite** B (refusals). **Priority** High. **Automation candidate** Yes (API).\n\n**Technique.** Decision table of member status and reservation.\n\n**Rules and examples.** RULE-LOAN-03, RULE-LOAN-04, EX-LOAN-05, EX-LOAN-06, EX-LOAN-07."
+    },
+    {
+      "id": "TC-04",
+      "title": "Grace period boundary",
+      "acs": [
+        "AC-05",
+        "AC-06"
+      ],
+      "status": "ready",
+      "steps": "**Objective.** The 7th day after the due date is still allowed, the 13th is not, and the loan period counts from today.\n\n**Preconditions.** Today is 2026-03-10. MEM-2 is logged in.\n\n**Steps**\n1. Renew LN-7 (overdue by 7 days).\n2. Renew LN-4 (overdue by 4 days).\n3. Renew LN-5 (overdue by 13 days).\n\n**Expected result**\n- LN-7 is due 2026-03-17.\n- LN-4 is due 2026-03-31.\n- Step 3 is refused: \"This loan is too late to renew. Please return the copy.\"",
+      "automation": "RenewOverdueLoanIT",
+      "notes": "**Suite** B (refusals). **Priority** High. **Automation candidate** Yes (API).\n\n**Technique.** Boundary value analysis (days overdue 4, 7, 13).\n\n**Rules and examples.** RULE-LOAN-05, RULE-LOAN-06, EX-LOAN-08 to EX-LOAN-12."
+    },
+    {
+      "id": "TC-05",
+      "title": "Order of refusal reasons",
+      "acs": [
+        "AC-07"
+      ],
+      "status": "passed",
+      "steps": "**Objective.** If several reasons apply, only the first in the fixed order is shown.\n\n**Preconditions.** The reference data set is loaded.\n\n**Steps**\n1. As MEM-3, renew LN-6.\n2. As MEM-1, renew LN-10.\n\n**Expected result**\n- Step 1 names only \"member status\".\n- Step 2 names only \"reservation\".",
+      "automation": "RefusalReasonOrderTest",
+      "notes": "**Suite** B (refusals). **Priority** Medium. **Automation candidate** Yes (unit).\n\n**Technique.** Decision table with precedence.\n\n**Rules and examples.** RULE-LOAN-07, EX-LOAN-13, EX-LOAN-14."
+    },
+    {
+      "id": "TC-06",
+      "title": "Staff at the desk",
+      "acs": [
+        "AC-09"
+      ],
+      "status": "blocked",
+      "steps": "**Objective.** A staff member can renew beyond the limit and the grace period, but not past a reservation.\n\n**Preconditions.** MEM-4 is logged in as staff. MEM-5 (no email address) is a member at the desk without loans.\n\n**Steps**\n1. Renew LN-2 for MEM-1.\n2. Renew LN-3 for MEM-1.\n3. Renew LN-5 for MEM-2.\n\n**Expected result**\n- LN-2 is due 2026-03-19 and has 3 renewals.\n- Step 2 is refused with \"reservation\".\n- LN-5 is due 2026-03-31.",
+      "automation": "",
+      "notes": "**Suite** C (staff). **Priority** Medium. **Automation candidate** Yes (e2e UI).\n\nBlocked until Q-LOAN-01 is answered.\n\n**Rules and examples.** RULE-LOAN-09, EX-LOAN-16, EX-LOAN-17, EX-LOAN-18."
+    }
+  ],
+  "limitations": [
+    {
+      "id": "KL-01",
+      "title": "The mobile app shows no refusal reason",
+      "text": "The mobile app of the library shows \"Renewal not possible\" for every refused renewal. The reason that the server returns is ignored.\n\nThe website shows the reasons as described in RULE-LOAN-07.",
+      "affects": [
+        "AC-10",
+        "RULE-LOAN-07"
+      ],
+      "followUp": "A follow-up ticket will be raised for the next release of the mobile app."
+    },
+    {
+      "id": "KL-02",
+      "title": "The confirmation email is in English only",
+      "text": "The email of a successful renewal is always in English, whatever language the member chose for the website.",
+      "affects": [
+        "AC-08"
+      ],
+      "followUp": ""
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "ASM-LOAN-01",
+      "text": "A due date has no time of day. A loan that is due today is not overdue until tomorrow.",
+      "affects": [
+        "AC-01",
+        "AC-05"
+      ]
+    },
+    {
+      "id": "ASM-LOAN-02",
+      "text": "A reservation blocks renewals until the reserving member gets a copy or cancels it. Q-01 of the terms decided that a suspended member keeps theirs.",
+      "affects": [
+        "AC-03"
+      ]
+    }
+  ],
+  "risks": [
+    {
+      "id": "R-LOAN-01",
+      "text": "A member keeps a copy that another member is waiting for, because the reservation check is skipped.",
+      "likelihood": 2,
+      "impact": 3,
+      "acs": [
+        "AC-03"
+      ],
+      "testApproach": "Automated API test with the reservation examples (TC-03)"
+    },
+    {
+      "id": "R-LOAN-02",
+      "text": "A wrong new due date because the old due date is used for an overdue loan.",
+      "likelihood": 2,
+      "impact": 2,
+      "acs": [
+        "AC-05"
+      ],
+      "testApproach": "Boundary values at 4, 7 and 13 days overdue (TC-04)"
+    },
+    {
+      "id": "R-LOAN-03",
+      "text": "Confirmation emails land in the spam folder, so members do not see their new due date.",
+      "likelihood": 3,
+      "impact": 1,
+      "acs": [
+        "AC-08"
+      ],
+      "testApproach": "Manual check of delivery to three common mail providers"
+    }
+  ],
+  "questions": [
+    {
+      "id": "Q-LOAN-01",
+      "text": "Does a renewal by a staff member count towards the renewal limit? (Same question as Q-02 in the terms.)",
+      "blocks": "AC-09, TC-06",
+      "askedTo": "Head of lending",
+      "status": "open",
+      "resolution": ""
+    },
+    {
+      "id": "Q-LOAN-02",
+      "text": "Which reference load makes AC-11 binding: the number of members, of renewals per minute, or both?",
+      "blocks": "AC-11 (stays a non-binding target until answered)",
+      "askedTo": "Product owner",
+      "status": "open",
+      "resolution": ""
+    },
+    {
+      "id": "Q-LOAN-03",
+      "text": "Should the \"Renew\" button be hidden or disabled for a loan that can't be renewed?",
+      "blocks": "AC-02",
+      "askedTo": "Product owner",
+      "status": "resolved",
+      "resolution": "Disabled, with the reason as a tooltip. Decided on 2026-10-14."
+    }
+  ],
+  "decisions": [
+    {
+      "date": "2026-10-12",
+      "text": "The renewal limit is 2 per loan. The library board considered 3 and kept 2 to keep popular titles moving.",
+      "refs": [
+        "RULE-LOAN-02",
+        "AC-02"
+      ]
+    },
+    {
+      "date": "2026-10-14",
+      "text": "An overdue loan is renewed from today, and only up to the 7th day after the due date.",
+      "refs": [
+        "RULE-LOAN-05",
+        "RULE-LOAN-06",
+        "AC-05"
+      ]
+    },
+    {
+      "date": "2026-10-16",
+      "text": "A member's own reservation does not block their renewal.",
+      "refs": [
+        "RULE-LOAN-03",
+        "EX-LOAN-06",
+        "AC-03"
+      ]
+    }
+  ],
+  "withdrawn": [
+    {
+      "ids": [
+        "RULE-LOAN-10"
+      ],
+      "reason": "Never used."
+    },
+    {
+      "ids": [
+        "EX-LOAN-90..EX-LOAN-92"
+      ],
+      "reason": "Described a fee for late renewals. The library decided against fees."
+    }
+  ],
+  "changelog": [
+    {
+      "date": "2026-10-12",
+      "author": "Jane Doe",
+      "action": "added",
+      "ref": "",
+      "summary": "First version, version 1.0."
+    },
+    {
+      "date": "2026-10-16",
+      "author": "Jane Doe",
+      "action": "changed",
+      "ref": "RULE-LOAN-03",
+      "summary": "Own reservation does not block. Added EX-LOAN-06."
+    },
+    {
+      "date": "2026-10-16",
+      "author": "John Roe",
+      "action": "added",
+      "ref": "AC-08",
+      "summary": "Added the confirmation email."
+    },
+    {
+      "date": "2026-10-20",
+      "author": "Jane Doe",
+      "action": "added",
+      "ref": "AC-09",
+      "summary": "Staff renewals as a draft, waiting for Q-LOAN-01."
+    },
+    {
+      "date": "2026-10-20",
+      "author": "Jane Doe",
+      "action": "changed",
+      "ref": "",
+      "summary": "Version 1.2 for approval by the product owner."
+    }
+  ]
+}

@@ -1,0 +1,1084 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Terms</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <style>
+    /* ===== Design tokens ===== */
+    :root {
+      --t-accent: #1677c9;
+      --t-flash: #fff3bf;
+      --t-avoid-bg: #fdecec;
+      --t-avoid-fg: #a12622;
+      --t-ui-bg: #eef4ff;
+      --t-ui-fg: #1d4f91;
+      --t-muted-border: #e3e6ea;
+      --t-radius: .4rem;
+      --t-radius-sm: .25rem;
+      /* Measured by updateStickyVars(): top bar height and tallest section head. */
+      --sticky-top: 3.6rem;
+      --sec-head-h: 3rem;
+    }
+    [data-bs-theme="dark"] {
+      --t-accent: #6cb4f5;
+      --t-flash: #4a4320;
+      --t-avoid-bg: #3d1f1f;
+      --t-avoid-fg: #f2a7a4;
+      --t-ui-bg: #1d2a3d;
+      --t-ui-fg: #a9c8f2;
+      --t-muted-border: #343a40;
+    }
+
+    /* ===== Page chrome ===== */
+    body { background: var(--bs-body-bg); }
+    /* Lighter and italic, so examples don't read as filled-in values. */
+    .form-control::placeholder { color: var(--bs-secondary-color); opacity: .55; font-style: italic; }
+    .topbar { backdrop-filter: blur(6px); }
+    .search-input { max-width: 22rem; }
+    .author-input { max-width: 12rem; min-width: 7rem; }
+    .empty-state { max-width: 40rem; margin: 4rem auto; }
+
+    /* ===== Sidebar ===== */
+    .sidebar { position: sticky; top: 4.5rem; max-height: calc(100vh - 5rem); overflow-y: auto; }
+    .sidebar .nav-link { padding: .2rem .5rem; color: var(--bs-body-color); border-radius: var(--t-radius-sm); }
+    .sidebar .nav-link:hover { background: var(--bs-tertiary-bg); }
+    .sidebar .nav-link.current { background: var(--bs-primary-bg-subtle); color: var(--bs-primary-text-emphasis); font-weight: 600; }
+    @media (max-width: 991.98px) { .sidebar { position: static; max-height: none; } }
+
+    /* ===== Sections and term cards ===== */
+    section { scroll-margin-top: var(--sticky-top); }
+    /* Section heads stick below the top bar until the next one pushes them out. */
+    .sec-head { position: sticky; top: var(--sticky-top); z-index: 3; background: var(--bs-body-bg); padding: .4rem 0; margin-bottom: .4rem; }
+    .sec-head h2 { margin: 0; }
+    .term { scroll-margin-top: calc(var(--sticky-top) + var(--sec-head-h) + .5rem); border: 1px solid var(--t-muted-border); border-radius: var(--t-radius); padding: .75rem 1rem; margin-bottom: .6rem; background: var(--bs-body-bg); transition: background-color .6s; }
+    .term.flash { background: var(--t-flash); }
+    .term h3 { font-size: 1.05rem; margin: 0; }
+    .term .anchor { color: var(--bs-secondary-color); text-decoration: none; margin-left: .35rem; visibility: hidden; }
+    .term:hover .anchor { visibility: visible; }
+    .term .definition { margin: .35rem 0 .4rem; }
+    .meta { display: flex; flex-wrap: wrap; gap: .35rem .9rem; font-size: .85rem; color: var(--bs-secondary-color); }
+    .meta .lbl { font-weight: 600; margin-right: .25rem; }
+    .chip { display: inline-block; padding: 0 .4rem; border-radius: var(--t-radius-sm); font-size: .82rem; margin: 0 .15rem .15rem 0; }
+    .chip-ui { background: var(--t-ui-bg); color: var(--t-ui-fg); }
+    .chip-avoid { background: var(--t-avoid-bg); color: var(--t-avoid-fg); }
+    a.term-link { color: var(--t-accent); text-decoration: none; border-bottom: 1px dotted var(--t-accent); }
+    .broken-link { color: var(--bs-danger); border-bottom: 1px dashed var(--bs-danger); }
+    .unsaved-row { background: var(--t-flash) !important; }
+
+    /* ===== Editor ===== */
+    .preview { border: 1px dashed var(--t-muted-border); border-radius: .3rem; padding: .4rem .6rem; font-size: .9rem; min-height: 2rem; }
+  </style>
+</head>
+<body>
+<nav class="navbar sticky-top bg-body-tertiary border-bottom topbar">
+  <div class="container-fluid gap-2 flex-nowrap">
+    <a class="navbar-brand fw-semibold text-truncate" href="#top">Terms</a>
+    <input id="search" class="form-control form-control-sm flex-shrink-1 search-input" type="search"
+           placeholder="Search terms ( / )" aria-label="Search terms">
+    <span id="fileStatus" class="badge text-bg-secondary d-none d-md-inline"></span>
+    <input id="author" class="form-control form-control-sm flex-shrink-1 ms-auto author-input"
+           placeholder="Your name" required aria-label="Your name, for the changelog (required)"
+           title="Your name, for the changelog (required)">
+    <div class="btn-group btn-group-sm flex-shrink-0">
+      <button id="btnOpen" data-action="open" class="btn btn-outline-secondary" title="Open terms.json">Open</button>
+      <button id="btnReload" data-action="reload" class="btn btn-outline-secondary d-none" title="Reload terms.json from disk">Reload</button>
+      <button id="btnSave" data-action="save" class="btn btn-primary" disabled title="Save to terms.json (Ctrl+S)">Save</button>
+    </div>
+  </div>
+</nav>
+
+<div id="top" class="container-fluid">
+  <div id="emptyState" class="empty-state text-center d-none">
+    <h1 class="h3">Terms</h1>
+    <p class="text-body-secondary">This page shows and edits <code>terms.json</code>, which lives next to it in
+      <code>terms/</code>. Opened directly from disk, the browser can't read that file by itself, so pick it once.</p>
+    <button id="btnReconnect" data-action="reconnect" class="btn btn-primary d-none mb-2">Reconnect <span id="reconnectName"></span></button>
+    <div><button id="btnOpenEmpty" data-action="open" class="btn btn-outline-primary">Open terms.json</button></div>
+    <p id="fsaHint" class="small text-body-secondary mt-3 d-none">Your browser can't save files directly. You can read
+      and edit here, then download the result and replace <code>terms/terms.json</code>. Chrome and Edge save
+      directly.</p>
+  </div>
+
+  <div id="app" class="row d-none">
+    <aside class="col-lg-3 col-xl-2 pt-3">
+      <div class="sidebar">
+        <nav id="toc" class="nav flex-column small"></nav>
+      </div>
+    </aside>
+
+    <main class="col-lg-9 col-xl-10 pt-3 pb-5">
+      <details id="about" class="card card-body mb-3">
+        <summary class="fw-semibold">About this page: the ubiquitous language of the project</summary>
+        <div class="mt-2">
+          <p>These terms are the <strong>ubiquitous language</strong> of the project, in the sense of Domain-Driven
+            Design (Eric Evans): one shared vocabulary that product owners, stakeholders, developers and testers all
+            use in the same way, in conversations, requirements, acceptance criteria, test cases, the user manual, the
+            UI and the code. If a word means one thing in a meeting, another in a spec and a third in the code, bugs
+            follow.</p>
+          <h3 class="h6">How to use the terms</h3>
+          <ul>
+            <li><strong>Look terms up here first.</strong> A requirements document may narrow a term for one story in
+              its own "Terms" section, but it links the term here (<code>terms.html#loan-period</code>) and must
+              not contradict it.</li>
+            <li><strong>One concept, one term.</strong> Don't use the synonyms marked <span class="chip chip-avoid">avoid</span>
+              in new text.</li>
+            <li><strong>UI labels are separate.</strong> <span class="chip chip-ui">UI</span> is the text users see
+              (possibly in another language). Specs and the user manual quote it ("Renew loan"); everywhere else, use the term.</li>
+            <li><strong>Code names should match.</strong> If the code name differs from the term, rename it when you
+              touch the code. The code links to the term (<code>terms.html#loan-period</code>), not the other way
+              round: terms don't list code names, which change more often than the terms.</li>
+            <li><strong>Undecided meaning goes to Open questions</strong>, not into a definition.</li>
+          </ul>
+          <h3 class="h6">How to maintain them</h3>
+          <ul>
+            <li>Keep the terms current as part of normal work: the story, spec or merge request that introduces,
+              changes or retires a concept updates the terms in the same change.</li>
+            <li>When a requirements document defines a term other stories will need, move it here and link it.</li>
+            <li>Don't delete terms that were in use; retire them with what replaced them, so old tickets stay readable.</li>
+            <li>Review the whole list at least once per release and before a larger requirements analysis.</li>
+            <li>Write short, plain definitions, built from other terms where possible. Link a term with
+              <code>[[term-id]]</code>; it shows the term's current name. Write code as <code>`Name`</code>.</li>
+          </ul>
+          <h3 class="h6">How to edit</h3>
+          <p class="mb-0">The data is <code>terms/terms.json</code> (schema: <code>terms.schema.json</code>).
+            People edit it on this page: every change adds a changelog entry, and Save writes the file directly
+            (Chrome or Edge). Agents and scripts edit the JSON directly, add a changelog entry themselves, and run
+            <code>node terms/check.mjs</code>. Commit the file like any other source.</p>
+        </div>
+      </details>
+
+      <div id="problems" class="alert alert-warning d-none"></div>
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span id="count" class="small text-body-secondary"></span>
+        <button id="btnAddTerm" data-action="add-term" class="btn btn-sm btn-outline-primary">+ Add term</button>
+      </div>
+      <div id="groups"></div>
+
+      <section id="open-questions" class="mt-4">
+        <div class="sec-head d-flex justify-content-between align-items-center">
+          <h2 class="h4">Open questions</h2>
+          <button id="btnAddQuestion" data-action="add-question" class="btn btn-sm btn-outline-primary">+ Add question</button>
+        </div>
+        <p class="small text-body-secondary">Conflicts and unclear meaning. Resolve each with the PO, then fix the
+          definitions and the documents involved.</p>
+        <div id="questions"></div>
+      </section>
+
+      <section id="resolved-questions" class="mt-4">
+        <div class="sec-head"><h2 class="h4">Resolved questions</h2></div>
+        <div id="resolvedQuestions"></div>
+      </section>
+
+      <section id="retired-terms" class="mt-4">
+        <div class="sec-head"><h2 class="h4">Retired terms</h2></div>
+        <div class="table-responsive"><table class="table table-sm align-middle">
+          <thead><tr><th>Term</th><th>Replaced by</th><th>Since</th><th>Meaning</th><th></th></tr></thead>
+          <tbody id="retired"></tbody>
+        </table></div>
+      </section>
+
+      <section id="changelog" class="mt-4">
+        <div class="sec-head"><h2 class="h4">Changelog</h2></div>
+        <div class="table-responsive"><table class="table table-sm">
+          <thead><tr><th>Date</th><th>Author</th><th>Action</th><th>Term</th><th>Change</th></tr></thead>
+          <tbody id="changes"></tbody>
+        </table></div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<!-- Term editor. Option lists (group, status) are filled from the data and the config block in the script. -->
+<div class="modal fade" id="termDialog" tabindex="-1" aria-labelledby="termDialogTitle" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable"><form class="modal-content" id="termForm" novalidate>
+    <div class="modal-header"><h2 class="modal-title h5" id="termDialogTitle">Edit term</h2>
+      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+    <div class="modal-body">
+      <div class="row g-2">
+        <div class="col-md-6"><label class="form-label" for="fTerm">Term</label>
+          <input id="fTerm" class="form-control" required></div>
+        <div class="col-md-3"><label class="form-label" for="fId">Id (anchor)</label>
+          <input id="fId" class="form-control font-monospace" required></div>
+        <div class="col-md-3"><label class="form-label" for="fGroup">Group</label>
+          <select id="fGroup" class="form-select"></select></div>
+        <div class="col-12"><label class="form-label" for="fDefinition">Definition</label>
+          <textarea id="fDefinition" class="form-control" rows="4" required></textarea>
+          <div class="form-text">Link a term with <code>[[term-id]]</code> (shows its current name); code as <code>`Name`</code>. Preview:</div>
+          <div id="fPreview" class="preview"></div></div>
+        <div class="col-12"><label class="form-label" for="fUi">UI label</label>
+          <input id="fUi" class="form-control" placeholder='"Renew loan"'></div>
+        <div class="col-12"><label class="form-label" for="fAvoid">Avoid (one per line)</label>
+          <textarea id="fAvoid" class="form-control" rows="2" placeholder='"borrowing period" (ambiguous)'></textarea></div>
+        <div class="col-md-4"><label class="form-label" for="fStatus">Status</label>
+          <select id="fStatus" class="form-select"></select></div>
+        <div class="col-md-4 retired-only"><label class="form-label" for="fReplacedBy">Replaced by</label>
+          <input id="fReplacedBy" class="form-control" list="termIds" placeholder="term id or text"></div>
+        <div class="col-md-4 retired-only"><label class="form-label" for="fRetiredSince">Retired since</label>
+          <input id="fRetiredSince" class="form-control" placeholder="date or release"></div>
+        <div class="col-12"><label class="form-label" for="fNote">Why (changelog note)</label>
+          <input id="fNote" class="form-control" placeholder="e.g. decision in the review of 2026-10-20"></div>
+      </div>
+      <div id="termError" class="alert alert-danger mt-3 mb-0 d-none"></div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" id="btnDeleteTerm" data-action="delete-term" class="btn btn-outline-danger me-auto">Delete</button>
+      <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+      <button type="submit" class="btn btn-primary">Apply</button>
+    </div>
+  </form></div>
+</div>
+
+<!-- Question editor -->
+<div class="modal fade" id="questionModal" tabindex="-1" aria-labelledby="questionModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-lg"><form class="modal-content" id="questionForm" novalidate>
+    <div class="modal-header"><h2 class="modal-title h5" id="questionModalTitle">Question</h2>
+      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+    <div class="modal-body">
+      <div class="row g-2">
+        <div class="col-md-9"><label class="form-label" for="qTitle">Title</label><input id="qTitle" class="form-control" required></div>
+        <div class="col-md-3"><label class="form-label" for="qStatus">Status</label>
+          <select id="qStatus" class="form-select"></select></div>
+        <div class="col-12"><label class="form-label" for="qTerms">Terms (comma-separated ids)</label>
+          <input id="qTerms" class="form-control font-monospace" list="termIds"></div>
+        <div class="col-12"><label class="form-label" for="qText">Question</label><textarea id="qText" class="form-control" rows="3" required></textarea></div>
+        <div class="col-12"><label class="form-label" for="qResolution">Resolution</label><textarea id="qResolution" class="form-control" rows="2"></textarea></div>
+      </div>
+      <div id="questionError" class="alert alert-danger mt-3 mb-0 d-none"></div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+      <button type="submit" class="btn btn-primary">Apply</button>
+    </div>
+  </form></div>
+</div>
+<datalist id="termIds"></datalist>
+<input id="filePicker" type="file" accept=".json,application/json" hidden>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+'use strict';
+
+// Sections: config, pure logic (no DOM, no state), state and DOM helpers, file access, changelog,
+// rendering, navigation, editors, wiring, start. To add a status, term field or question field,
+// start in the config block.
+
+// ============================================================================
+// CONFIG
+// ============================================================================
+const FILE_NAME = 'terms.json';
+const SCHEMA_REF = './terms.schema.json';
+const AUTHOR_STORAGE_KEY = 'sbe-terms-author';
+const IDB = { name: 'sbe-terms', store: 'handles' };
+const QUESTION_ID_PREFIX = 'Q-';
+const SLUG_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+const LINK_RE = /\[\[([^\]]+)]]/g;
+
+const TERM_STATUS = Object.freeze({ ACTIVE: 'active', RETIRED: 'retired' });
+const QUESTION_STATUS = Object.freeze({ OPEN: 'open', RESOLVED: 'resolved' });
+const QUESTION_BADGE = { [QUESTION_STATUS.OPEN]: 'text-bg-warning', [QUESTION_STATUS.RESOLVED]: 'text-bg-success' };
+
+/** How a form input maps to a model value. */
+const FIELD_KINDS = {
+  text: { toInput: (v) => v ?? '', fromInput: (s) => s.trim() },
+  lines: { toInput: (v) => (v ?? []).join('\n'), fromInput: (s) => s.split('\n').map((x) => x.trim()).filter(Boolean) },
+  csv: { toInput: (v) => (v ?? []).join(', '), fromInput: (s) => s.split(',').map((x) => x.trim()).filter(Boolean) },
+};
+/**
+ * Fields of the term editor: model key, form input id, kind, and the label used in "Changed ..." log
+ * summaries (no label: not tracked there). retiredOnly fields exist only on retired terms.
+ */
+const TERM_FIELDS = [
+  { key: 'id', input: 'fId' },
+  { key: 'term', input: 'fTerm', label: 'term' },
+  { key: 'group', input: 'fGroup', label: 'group' },
+  { key: 'definition', input: 'fDefinition', label: 'definition' },
+  { key: 'uiLabel', input: 'fUi', label: 'UI label' },
+  { key: 'avoid', input: 'fAvoid', label: 'avoid', kind: 'lines' },
+  { key: 'status', input: 'fStatus' },
+  { key: 'replacedBy', input: 'fReplacedBy', label: 'replaced by', retiredOnly: true },
+  { key: 'retiredSince', input: 'fRetiredSince', label: 'retired since', retiredOnly: true },
+];
+const QUESTION_FIELDS = [
+  { key: 'title', input: 'qTitle' },
+  { key: 'status', input: 'qStatus' },
+  { key: 'terms', input: 'qTerms', kind: 'csv' },
+  { key: 'text', input: 'qText' },
+  { key: 'resolution', input: 'qResolution' },
+];
+/** Key order and defaults of the written file, so diffs only show real changes. [key, default when missing]. */
+const SHAPE = {
+  group: [['id'], ['title']],
+  term: [['id'], ['term'], ['group'], ['definition'], ['uiLabel', ''], ['avoid', []], ['status']],
+  question: [['id'], ['title'], ['status'], ['terms'], ['text'], ['resolution', '']],
+  change: [['date'], ['author'], ['action'], ['ref', ''], ['summary']],
+};
+const TERM_RETIRED_KEYS = TERM_FIELDS.filter((f) => f.retiredOnly).map((f) => f.key);
+
+/** UI timings and measures. */
+const UI = {
+  flashMs: 1500,
+  initialGoToDelayMs: 50,
+  afterApplyGoToDelayMs: 300,
+  spyLinePadPx: 24,
+  pageBottomTolerancePx: 2,
+  changelogDateChars: 16,
+};
+const PERMISSION = { mode: 'readwrite' };
+const PICKER_OPTIONS = { id: 'sbe-terms', types: [{ description: 'Terms JSON', accept: { 'application/json': ['.json'] } }] };
+
+// ============================================================================
+// PURE LOGIC (no DOM, no state: everything comes in as arguments)
+// ============================================================================
+
+// ---------- html strings ----------
+/** Markup that is already safe. Everything else interpolated into html`` is escaped. */
+class Html { constructor(s) { this.s = s; } }
+const raw = (s) => new Html(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const toHtml = (v) => (Array.isArray(v) ? v.map(toHtml).join('') : v instanceof Html ? v.s : esc(v));
+/** Tagged template: escapes every interpolated value unless it is html``/raw() output; arrays are concatenated. */
+const html = (strings, ...vals) => new Html(strings.reduce((out, s, i) => out + toHtml(vals[i - 1]) + s));
+const joinHtml = (items, sep) => raw(items.map(toHtml).join(sep));
+
+// ---------- text and dates ----------
+const pad = (n) => String(Math.abs(n)).padStart(2, '0');
+/** Local date, e.g. 2026-10-19. */
+const today = (d = new Date()) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+/** Local date and time with UTC offset, e.g. 2026-10-19T14:32+02:00. */
+const now = (d = new Date()) => {
+  const off = -d.getTimezoneOffset();
+  return `${today(d)}T${pad(d.getHours())}:${pad(d.getMinutes())}${off < 0 ? '-' : '+'}${pad(Math.trunc(off / 60))}:${pad(off % 60)}`;
+};
+/** A changelog date as "2026-10-19 14:32" (or just the date for date-only entries). */
+const shortDate = (s) => (s ?? '').slice(0, UI.changelogDateChars).replace('T', ' ');
+const slugify = (s) => s.toLowerCase().replace(/\s*\(.*?\)/g, '').replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue')
+  .replace(/ß/g, 'ss').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+const byName = (a, b) => a.localeCompare(b, 'en', { sensitivity: 'base' });
+const decodeHash = (hash) => {
+  const id = hash.replace(/^#/, '');
+  try { return decodeURIComponent(id); } catch { return id; }
+};
+
+// ---------- terms and links ----------
+const findTerm = (data, id) => data.terms.find((t) => t.id === id);
+const linkIds = (text) => [...String(text ?? '').matchAll(LINK_RE)].map((m) => m[1]);
+/** Definition text without markup: links show the term's current name, code ticks are dropped. */
+const plainText = (data, text) => String(text ?? '').replace(LINK_RE, (_, id) => findTerm(data, id)?.term || id).replace(/`/g, '');
+
+/** Renders definition text: `code` and [[id]] links, shown with the term's current name; everything else is escaped. */
+function richHtml(data, text) {
+  return raw(String(text ?? '').split(/(`[^`]*`)/).map((part) => {
+    if (part.startsWith('`') && part.endsWith('`') && part.length > 1) return `<code>${esc(part.slice(1, -1))}</code>`;
+    return esc(part).replace(LINK_RE, (_, id) => {
+      const t = data && findTerm(data, id);
+      if (!t) return `<span class="broken-link" title="Unknown term id: ${esc(id)}">${esc(id)}</span>`;
+      return `<a class="term-link" href="#${esc(id)}" title="${esc(t.term + ': ' + plainText(data, t.definition))}">${esc(t.term)}</a>`;
+    });
+  }).join(''));
+}
+
+/** True if the term (at a lowercase search string) matches by id, name, definition, UI label or avoid list. */
+function matchesTerm(data, t, q) {
+  if (!q) return true;
+  return [t.id, t.term, plainText(data, t.definition), t.uiLabel, ...(t.avoid ?? [])].join(' \u0001 ').toLowerCase().includes(q);
+}
+
+/** Names of the terms whose definition links to the given id. */
+const termsLinkingTo = (data, id) => data.terms.filter((x) => linkIds(x.definition).includes(id)).map((x) => x.term);
+
+const nextQuestionId = (questions) =>
+  QUESTION_ID_PREFIX + String(Math.max(0, ...questions.map((q) => parseInt(q.id.slice(QUESTION_ID_PREFIX.length), 10) || 0)) + 1).padStart(2, '0');
+
+// ---------- data model: sort, serialize, validate ----------
+/** Sorts groups by title and terms by group, then by name, in place. */
+function sortData(data) {
+  data.groups.sort((a, b) => byName(a.title, b.title));
+  const groupIndex = new Map(data.groups.map((g, i) => [g.id, i]));
+  data.terms.sort((a, b) => (groupIndex.get(a.group) ?? Infinity) - (groupIndex.get(b.group) ?? Infinity) || byName(a.term, b.term));
+}
+
+const pick = (obj, shape) => Object.fromEntries(shape.map(([key, dflt]) => [key, obj[key] ?? dflt]));
+
+/** Same key order and formatting as the committed file, so diffs only show real changes. */
+function serialize(data) {
+  sortData(data);
+  const term = (t) => {
+    const o = pick(t, SHAPE.term);
+    const retired = t.status === TERM_STATUS.RETIRED;
+    for (const k of TERM_RETIRED_KEYS) if (retired || t[k]) o[k] = t[k] ?? '';
+    return o;
+  };
+  const out = {
+    $schema: data.$schema ?? SCHEMA_REF,
+    groups: data.groups.map((g) => pick(g, SHAPE.group)),
+    terms: data.terms.map(term),
+    questions: data.questions.map((q) => pick(q, SHAPE.question)),
+    changelog: data.changelog.map((c) => pick(c, SHAPE.change)),
+  };
+  return JSON.stringify(out, null, 2) + '\n';
+}
+
+/** Same checks as check.mjs. */
+function validate(data) {
+  const errors = [];
+  const groups = new Set(data.groups.map((g) => g.id));
+  const ids = new Set();
+  for (const t of data.terms) {
+    if (!SLUG_RE.test(t.id)) errors.push(`Term "${t.term}": id "${t.id}" is not a lowercase slug.`);
+    if (ids.has(t.id)) errors.push(`Duplicate term id "${t.id}".`);
+    ids.add(t.id);
+    if (!groups.has(t.group)) errors.push(`Term "${t.id}": unknown group "${t.group}".`);
+    if (!t.term?.trim() || !t.definition?.trim()) errors.push(`Term "${t.id}": term or definition is empty.`);
+    if (t.status === TERM_STATUS.RETIRED && !t.replacedBy) errors.push(`Term "${t.id}": retired without "Replaced by".`);
+  }
+  for (const t of data.terms) for (const id of linkIds(t.definition)) if (!ids.has(id)) errors.push(`Term "${t.id}": link to unknown term "${id}".`);
+  for (const q of data.questions) {
+    for (const id of [...q.terms, ...linkIds(q.text), ...linkIds(q.resolution)]) if (!ids.has(id)) errors.push(`Question ${q.id}: unknown term "${id}".`);
+    if (q.status === QUESTION_STATUS.RESOLVED && !q.resolution?.trim()) errors.push(`Question ${q.id}: resolved without a resolution.`);
+  }
+  return errors;
+}
+
+/** Checks for the term editor's input. editingId is null for a new term. */
+function validateTermInput(data, next, editingId) {
+  const err = [];
+  if (!next.term) err.push('Term is required.');
+  if (!SLUG_RE.test(next.id)) err.push('Id must be a lowercase slug, e.g. "loan-period".');
+  if (!editingId && findTerm(data, next.id)) err.push(`Id "${next.id}" is already used by "${findTerm(data, next.id).term}".`);
+  if (!next.definition) err.push('Definition is required.');
+  for (const id of linkIds(next.definition)) if (!findTerm(data, id) && id !== next.id) err.push(`Link to unknown term "${id}".`);
+  if (next.status === TERM_STATUS.RETIRED && !next.replacedBy) err.push('A retired term needs "Replaced by".');
+  return err;
+}
+
+function validateQuestionInput(data, next) {
+  const err = [];
+  if (!next.title || !next.text) err.push('Title and question are required.');
+  for (const id of next.terms) if (!findTerm(data, id)) err.push(`Unknown term id "${id}".`);
+  if (next.status === QUESTION_STATUS.RESOLVED && !next.resolution) err.push('A resolved question needs a resolution.');
+  return err;
+}
+
+// ---------- changelog ----------
+const sameValue = (a, b) => JSON.stringify(a ?? (Array.isArray(b) ? [] : '')) === JSON.stringify(b ?? (Array.isArray(a) ? [] : ''));
+const withNote = (summary, note) => (note ? `${summary} ${note.replace(/\.?$/, '.')}` : summary);
+
+/** The changelog entry (action and summary, without note) for editing term cur into next, or null if nothing changed. */
+function termUpdateEntry(cur, next) {
+  const changed = TERM_FIELDS.filter((f) => f.label && !sameValue(cur[f.key], next[f.key])).map((f) => f.label);
+  const retiring = cur.status !== TERM_STATUS.RETIRED && next.status === TERM_STATUS.RETIRED;
+  const reactivating = cur.status === TERM_STATUS.RETIRED && next.status === TERM_STATUS.ACTIVE;
+  if (!changed.length && !retiring && !reactivating) return null;
+  if (retiring) return { action: 'retired', summary: `Retired, replaced by ${next.replacedBy}.` };
+  return { action: 'changed', summary: reactivating ? 'Reactivated.' : `Changed ${changed.join(', ')}.` };
+}
+
+function questionUpdateEntry(cur, next) {
+  const resolving = cur.status !== QUESTION_STATUS.RESOLVED && next.status === QUESTION_STATUS.RESOLVED;
+  return { action: 'question', summary: resolving ? `Resolved: ${next.resolution}` : `Changed question "${next.title}".` };
+}
+
+/** Appends a changelog entry; repeated unsaved edits of the same term by the same person are merged. */
+function addLogEntry(changelog, savedLength, { action, ref, summary, author }, date = new Date()) {
+  const last = changelog[changelog.length - 1];
+  const mergeable = last && changelog.length > savedLength && last.ref === ref && last.author === author
+    && last.date.slice(0, 10) === today(date) && last.action === action && action !== 'deleted';
+  if (mergeable) {
+    if (!last.summary.includes(summary)) last.summary += ' ' + summary;
+    last.date = now(date);
+  } else {
+    changelog.push({ date: now(date), author, action, ref, summary });
+  }
+}
+
+// ============================================================================
+// STATE AND DOM HELPERS
+// ============================================================================
+const state = {
+  data: null,        // parsed terms.json
+  diskText: null,    // file content as last read from or written to disk; used to detect outside changes
+  handle: null,      // FileSystemFileHandle of terms.json, when connected
+  reconnectHandle: null, // remembered handle that still needs a permission click
+  source: null,      // 'http' | 'file' | 'upload'
+  dirty: false,
+  savedChangelogLength: 0,
+  editingTermId: null,     // null = new term
+  editingQuestionId: null, // null = new question
+  spyQueued: false,
+};
+const hasFsa = 'showOpenFilePicker' in window;
+const $ = (id) => document.getElementById(id);
+const show = (el, visible) => el.classList.toggle('d-none', !visible);
+const setHtml = (el, h) => { el.innerHTML = toHtml(h); };
+const termDialog = new bootstrap.Modal($('termDialog'));
+const questionModal = new bootstrap.Modal($('questionModal'));
+
+const termById = (id) => findTerm(state.data, id);
+const rich = (text) => richHtml(state.data, text);
+const fillOptions = (select, options) => setHtml(select, options.map(([value, label]) => html`<option value="${value}">${label}</option>`));
+
+const darkQuery = matchMedia('(prefers-color-scheme: dark)');
+const applyTheme = () => document.documentElement.setAttribute('data-bs-theme', darkQuery.matches ? 'dark' : 'light');
+
+function fillForm(fields, obj) {
+  for (const f of fields) $(f.input).value = FIELD_KINDS[f.kind ?? 'text'].toInput(obj[f.key]);
+}
+function readForm(fields) {
+  return Object.fromEntries(fields.map((f) => [f.key, FIELD_KINDS[f.kind ?? 'text'].fromInput($(f.input).value)]));
+}
+function showError(id, errors) {
+  setHtml($(id), joinHtml(errors, '<br>'));
+  show($(id), true);
+}
+
+// ============================================================================
+// FILE ACCESS: remembered handle, load, save
+// ============================================================================
+// ---------- IndexedDB: remember the file handle per page location ----------
+function idbRun(mode, fn) {
+  return new Promise((resolve, reject) => {
+    const open = indexedDB.open(IDB.name, 1);
+    open.onupgradeneeded = () => open.result.createObjectStore(IDB.store);
+    open.onerror = () => reject(open.error);
+    open.onsuccess = () => {
+      const tx = open.result.transaction(IDB.store, mode);
+      const req = fn(tx.objectStore(IDB.store));
+      tx.oncomplete = () => resolve(req.result);
+      tx.onerror = () => reject(tx.error);
+    };
+  });
+}
+// Remembering the file is a convenience only, so failures are swallowed.
+const idbGet = (key) => idbRun('readonly', (s) => s.get(key)).catch(() => undefined);
+const idbSet = (key, value) => idbRun('readwrite', (s) => s.put(value, key)).catch(() => {});
+const idbDelete = (key) => idbRun('readwrite', (s) => s.delete(key)).catch(() => {});
+const handleKey = () => 'terms:' + location.pathname;
+const rememberedHandle = () => (hasFsa ? idbGet(handleKey()) : undefined);
+const canWrite = async (handle) => await handle.queryPermission(PERMISSION) === 'granted';
+const mayWrite = async (handle) => await handle.requestPermission(PERMISSION) === 'granted';
+
+/** Forgets a remembered file that no longer exists at its path (moved, deleted or replaced). */
+async function forgetHandle() {
+  await idbDelete(handleKey());
+  state.handle = null;
+  show($('btnReconnect'), false);
+  if (state.data) setDirty(state.dirty);
+}
+
+// ---------- loading ----------
+function load(text, source, handle) {
+  const data = JSON.parse(text);
+  if (!Array.isArray(data.terms) || !Array.isArray(data.groups)) throw new Error('This is not a terms.json file.');
+  data.questions ??= [];
+  data.changelog ??= [];
+  state.data = data;
+  state.diskText = text;
+  state.source = source;
+  state.handle = handle ?? state.handle;
+  state.savedChangelogLength = data.changelog.length;
+  setDirty(false);
+  show($('emptyState'), false);
+  show($('app'), true);
+  render();
+  if (location.hash) setTimeout(() => goTo(decodeHash(location.hash)), UI.initialGoToDelayMs);
+}
+
+async function pickFile() {
+  if (state.dirty && !confirm('You have unsaved changes. Discard them and open another file?')) return;
+  if (!hasFsa) { $('filePicker').click(); return; }
+  let handle;
+  try {
+    [handle] = await window.showOpenFilePicker(PICKER_OPTIONS);
+  } catch (e) { if (e.name !== 'AbortError') alert(e.message); return; }
+  await openHandle(handle);
+}
+
+async function openHandle(handle) {
+  try {
+    const granted = await mayWrite(handle);
+    const text = await (await handle.getFile()).text();
+    load(text, 'file', granted ? handle : null);
+    if (granted) await idbSet(handleKey(), handle);
+  } catch (e) {
+    if (e.name === 'NotFoundError') {
+      await forgetHandle();
+      alert(`${handle.name} is no longer where it was when you opened it (moved, deleted or replaced). Open terms/terms.json again.`);
+      if (!state.data) show($('emptyState'), true);
+    } else {
+      alert('Could not open the file: ' + e.message);
+    }
+  }
+}
+
+async function reloadFromDisk() {
+  if (!state.handle) return;
+  if (state.dirty && !confirm('Discard your unsaved changes and reload terms.json from disk?')) return;
+  await openHandle(state.handle);
+}
+
+// ---------- saving ----------
+async function ensureWritableHandle() {
+  if (state.handle) {
+    try { await state.handle.getFile(); } catch (e) { if (e.name === 'NotFoundError') await forgetHandle(); }
+  }
+  if (state.handle && (await canWrite(state.handle) || await mayWrite(state.handle))) return state.handle;
+  if (!hasFsa) return null;
+  alert('Choose terms/terms.json in your repository to save into it.');
+  try {
+    const [h] = await window.showOpenFilePicker(PICKER_OPTIONS);
+    if (!await mayWrite(h)) return null;
+    state.handle = h;
+    await idbSet(handleKey(), h);
+    return h;
+  } catch { return null; }
+}
+
+function download(text) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
+  a.download = FILE_NAME;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+function markSaved(text) {
+  state.diskText = text;
+  state.savedChangelogLength = state.data.changelog.length;
+  setDirty(false);
+  render();
+}
+
+async function save() {
+  if (!state.data || !state.dirty) return;
+  const who = author();
+  if (!who) return;
+  stampAuthor(who);
+  const problems = validate(state.data);
+  if (problems.length) { alert('Fix these problems before saving:\n\n- ' + problems.join('\n- ')); return; }
+  const text = serialize(state.data);
+  const handle = await ensureWritableHandle();
+  if (!handle) {
+    if (confirm('This browser can\'t write the file directly. Download terms.json instead? Then replace terms/terms.json with it.')) {
+      download(text);
+      markSaved(text);
+    }
+    return;
+  }
+  try {
+    const onDisk = await (await handle.getFile()).text();
+    if (onDisk !== state.diskText && onDisk !== text) {
+      const overwrite = confirm('terms.json changed on disk since you opened it (for example a git pull, or an agent edited it).\n\n'
+        + 'OK: overwrite it with your version (the other changes are lost).\n'
+        + 'Cancel: don\'t save; your version is downloaded so you can merge by hand.');
+      if (!overwrite) { download(text); return; }
+    }
+    const w = await handle.createWritable();
+    await w.write(text);
+    await w.close();
+    state.source = 'file';
+    markSaved(text);
+  } catch (e) { alert('Saving failed: ' + e.message); }
+}
+
+function setDirty(dirty) {
+  state.dirty = dirty;
+  $('btnSave').disabled = !dirty;
+  const pending = state.data ? state.data.changelog.length - state.savedChangelogLength : 0;
+  $('btnSave').textContent = dirty ? `Save (${pending})` : 'Save';
+  const fs = $('fileStatus');
+  const where = state.source === 'file' && state.handle ? `${state.handle.name}, connected`
+    : state.source === 'http' ? `${FILE_NAME}, read via the web server` : state.source === 'upload' ? 'uploaded copy' : '';
+  fs.textContent = dirty ? `${where} · unsaved changes` : where;
+  fs.className = 'badge d-none d-md-inline ' + (dirty ? 'text-bg-warning' : 'text-bg-secondary');
+  show($('btnReload'), !!state.handle);
+}
+
+// ============================================================================
+// AUTHOR AND CHANGELOG
+// ============================================================================
+function author() {
+  let name = $('author').value.trim();
+  if (!name) {
+    name = (prompt('Your name, for the changelog:') ?? '').trim();
+    if (!name) return null;
+    $('author').value = name;
+    storeAuthor();
+  }
+  return name;
+}
+
+/** Sets the author of every unsaved changelog entry to the given name. */
+function stampAuthor(name) {
+  state.data.changelog.slice(state.savedChangelogLength).forEach((c) => { c.author = name; });
+}
+
+/** Remembers the author name in this browser and marks the field invalid while it is empty. */
+function storeAuthor() {
+  const name = $('author').value.trim();
+  $('author').classList.toggle('is-invalid', !name);
+  try { localStorage.setItem(AUTHOR_STORAGE_KEY, name); } catch { /* optional */ }
+}
+
+/** Logs a change under the current author; false if no name was given (the change must then be cancelled). */
+function log(action, ref, summary) {
+  const who = author();
+  if (!who) return false;
+  addLogEntry(state.data.changelog, state.savedChangelogLength, { action, ref, summary, author: who });
+  setDirty(true);
+  return true;
+}
+
+// ============================================================================
+// RENDERING
+// ============================================================================
+const noneYet = (text) => html`<p class="text-body-secondary small">${text}</p>`;
+const metaItem = (label, content) => html`<span><span class="lbl">${label}</span>${content}</span>`;
+const editButton = (action, id, cls = ' text-decoration-none') =>
+  html`<button class="btn btn-sm btn-link p-0${cls}" data-action="${action}" data-id="${id}">Edit</button>`;
+const tocLink = (href, label, count) => count
+  ? html`<a class="nav-link d-flex justify-content-between" href="${href}"><span>${label}</span>${count}</a>`
+  : html`<a class="nav-link" href="${href}">${label}</a>`;
+/** A link to a term (shown with its current name); fallback is shown when the id is not a term. */
+const termRef = (id, fallback) => (termById(id) ? rich(`[[${id}]]`) : fallback);
+
+function termCard(t, openQuestions) {
+  const badges = openQuestions.filter((q) => q.terms.includes(t.id))
+    .map((q) => html`<a href="#${q.id}" class="badge text-bg-warning text-decoration-none ms-1">${q.id} open</a>`);
+  const meta = [];
+  if (t.uiLabel) meta.push(metaItem('UI', html`<span class="chip chip-ui">${t.uiLabel}</span>`));
+  if (t.avoid?.length) meta.push(metaItem('Avoid', t.avoid.map((a) => html`<span class="chip chip-avoid">${a}</span>`)));
+  return html`<article class="term" id="${t.id}">
+    <div class="d-flex justify-content-between align-items-start gap-2">
+      <h3>${t.term}<a class="anchor" href="#${t.id}" title="Link to this term">#</a>
+        ${badges}</h3>
+      ${editButton('edit-term', t.id)}
+    </div>
+    <div class="definition">${rich(t.definition)}</div>
+    ${meta.length ? html`<div class="meta">${meta}</div>` : ''}
+  </article>`;
+}
+
+function questionCard(x) {
+  return html`<div class="term" id="${x.id}">
+      <div class="d-flex justify-content-between gap-2"><h3>${x.id}: ${x.title}
+        <span class="badge ${QUESTION_BADGE[x.status] ?? 'text-bg-secondary'} ms-1">${x.status}</span></h3>
+        ${editButton('edit-question', x.id)}</div>
+      <div class="definition">${rich(x.text)}</div>
+      ${x.resolution ? html`<div class="small"><strong>Resolution:</strong> ${rich(x.resolution)}</div>` : ''}
+      <div class="meta">${metaItem('Terms', joinHtml(x.terms.map((id) => rich(`[[${id}]]`)), ', '))}</div>
+    </div>`;
+}
+
+function renderGroups(d, active, openQuestions, q) {
+  let shown = 0;
+  setHtml($('groups'), d.groups.map((g) => {
+    const terms = active.filter((t) => t.group === g.id && matchesTerm(d, t, q));
+    shown += terms.length;
+    if (!terms.length && q) return '';
+    return html`<section id="group-${g.id}" class="mb-4"><div class="sec-head d-flex justify-content-between align-items-center">
+      <h2 class="h4">${g.title}</h2><button class="btn btn-sm btn-outline-primary" data-action="add-term" data-group="${g.id}">+ Add term</button></div>
+      ${terms.length ? terms.map((t) => termCard(t, openQuestions)) : noneYet('No terms yet.')}</section>`;
+  }));
+  $('count').textContent = q ? `${shown} of ${active.length} terms match` : `${active.length} terms`;
+}
+
+function renderToc(d, active, openQuestions) {
+  const groupCount = (g) => html`<span class="text-body-secondary">${active.filter((t) => t.group === g.id).length}</span>`;
+  const openBadge = html`<span class="badge ${openQuestions.length ? 'text-bg-warning' : 'text-bg-success'}">${openQuestions.length}</span>`;
+  setHtml($('toc'), [
+    d.groups.map((g) => tocLink(`#group-${g.id}`, g.title, groupCount(g))),
+    raw('<hr class="my-2">'),
+    tocLink('#open-questions', 'Open questions', openBadge),
+    tocLink('#resolved-questions', 'Resolved questions', html`<span class="text-body-secondary">${d.questions.length - openQuestions.length}</span>`),
+    tocLink('#retired-terms', 'Retired terms'),
+    tocLink('#changelog', 'Changelog'),
+  ]);
+}
+
+function renderQuestions(d, openQuestions) {
+  const resolved = d.questions.filter((x) => x.status !== QUESTION_STATUS.OPEN);
+  setHtml($('questions'), openQuestions.length ? openQuestions.map(questionCard) : noneYet('None.'));
+  setHtml($('resolvedQuestions'), resolved.length ? resolved.map(questionCard) : noneYet('None.'));
+}
+
+function renderRetired(d) {
+  setHtml($('retired'), d.terms.filter((t) => t.status === TERM_STATUS.RETIRED).map((t) => html`<tr id="${t.id}">
+      <td>${t.term}</td><td>${termRef(t.replacedBy, t.replacedBy)}</td>
+      <td>${t.retiredSince}</td><td>${rich(t.definition)}</td>
+      <td>${editButton('edit-term', t.id, '')}</td></tr>`));
+}
+
+function renderChangelog(d) {
+  setHtml($('changes'), d.changelog.map((c, i) => ({ c, unsaved: i >= state.savedChangelogLength })).reverse().map(({ c, unsaved }) =>
+    html`<tr class="${unsaved ? 'unsaved-row' : ''}">
+      <td class="text-nowrap" title="${c.date}">${shortDate(c.date)}</td><td>${c.author}</td><td>${c.action}</td>
+      <td>${c.ref ? termRef(c.ref, html`<a href="#${c.ref}">${c.ref}</a>`) : ''}</td>
+      <td>${c.summary}${unsaved ? html` <span class="badge text-bg-warning">unsaved</span>` : ''}</td></tr>`));
+}
+
+function renderProblems(d) {
+  const problems = validate(d);
+  show($('problems'), problems.length > 0);
+  setHtml($('problems'), problems.length
+    ? html`<strong>${problems.length} problem(s):</strong><ul class="mb-0">${problems.map((p) => html`<li>${p}</li>`)}</ul>` : '');
+}
+
+function render() {
+  const d = state.data;
+  sortData(d);
+  const q = $('search').value.trim().toLowerCase();
+  const openQuestions = d.questions.filter((x) => x.status === QUESTION_STATUS.OPEN);
+  const active = d.terms.filter((t) => t.status !== TERM_STATUS.RETIRED);
+  renderGroups(d, active, openQuestions, q);
+  renderToc(d, active, openQuestions);
+  renderQuestions(d, openQuestions);
+  renderRetired(d);
+  renderChangelog(d);
+  setHtml($('termIds'), d.terms.map((t) => html`<option value="${t.id}">${t.term}</option>`));
+  setHtml($('fGroup'), d.groups.map((g) => html`<option value="${g.id}">${g.title}</option>`));
+  renderProblems(d);
+  updateStickyVars();
+  queueSpy();
+}
+
+// ============================================================================
+// NAVIGATION: deep links, sticky heads, scroll spy
+// ============================================================================
+function goTo(id) {
+  let el = document.getElementById(id);
+  if (!el && $('search').value) { $('search').value = ''; render(); el = document.getElementById(id); }
+  if (!el) return;
+  el.scrollIntoView({ block: 'start' });
+  if (el.classList.contains('term')) {
+    el.classList.add('flash');
+    setTimeout(() => el.classList.remove('flash'), UI.flashMs);
+  }
+}
+
+/** Measures the top bar and the tallest visible section head, and sets the CSS offsets for the sticky heads. */
+function updateStickyVars() {
+  const root = document.documentElement.style;
+  root.setProperty('--sticky-top', `${document.querySelector('.topbar').offsetHeight}px`);
+  root.setProperty('--sec-head-h', `${Math.max(0, ...[...document.querySelectorAll('.sec-head')].map((el) => el.offsetHeight))}px`);
+}
+
+/** Highlights the sidebar link of the section at the top of the viewport. */
+function spyToc() {
+  const line = document.querySelector('.topbar').offsetHeight + UI.spyLinePadPx;
+  const links = [...document.querySelectorAll('#toc .nav-link')];
+  const target = (a) => document.getElementById(decodeHash(a.hash));
+  let cur = null, best = -Infinity;
+  for (const a of links) {
+    const el = target(a);
+    if (!el || el.offsetParent === null) continue;
+    const top = el.getBoundingClientRect().top;
+    if (top <= line && top >= best) { cur = a; best = top; }
+  }
+  // At the bottom of the page the last sections can't reach the top, so the last visible one wins.
+  if (innerHeight + scrollY >= document.documentElement.scrollHeight - UI.pageBottomTolerancePx) {
+    cur = links.filter((a) => target(a)?.offsetParent).pop() ?? cur;
+  }
+  links.forEach((a) => a.classList.toggle('current', a === cur));
+  // Keep the highlighted link in view when the sidebar itself scrolls.
+  const sb = cur?.closest('.sidebar');
+  if (sb && sb.scrollHeight > sb.clientHeight) {
+    const [s, l] = [sb.getBoundingClientRect(), cur.getBoundingClientRect()];
+    if (l.top < s.top || l.bottom > s.bottom) sb.scrollTop += l.top - s.top - s.height / 2;
+  }
+}
+function queueSpy() {
+  if (state.spyQueued) return;
+  state.spyQueued = true;
+  requestAnimationFrame(() => { state.spyQueued = false; spyToc(); });
+}
+
+// ============================================================================
+// EDITORS
+// ============================================================================
+const blankTerm = (group) => ({ id: '', term: '', group, definition: '', uiLabel: '', avoid: [], status: TERM_STATUS.ACTIVE });
+const blankQuestion = () => ({ title: '', status: QUESTION_STATUS.OPEN, terms: [], text: '', resolution: '' });
+
+function openTermEditor(id, group = state.data.groups[0].id) {
+  state.editingTermId = id;
+  const t = id ? termById(id) : blankTerm(group);
+  $('termDialogTitle').textContent = id ? `Edit "${t.term}"` : 'Add term';
+  fillForm(TERM_FIELDS, t);
+  $('fId').readOnly = !!id;
+  $('fId').title = id ? 'The id is a stable link target and can\'t be changed.' : '';
+  $('fNote').value = '';
+  show($('termError'), false);
+  show($('btnDeleteTerm'), !!id);
+  toggleRetired();
+  setHtml($('fPreview'), rich(t.definition));
+  termDialog.show();
+}
+
+function toggleRetired() {
+  const retired = $('fStatus').value === TERM_STATUS.RETIRED;
+  document.querySelectorAll('.retired-only').forEach((el) => show(el, retired));
+}
+
+function applyTerm(ev) {
+  ev.preventDefault();
+  const next = readForm(TERM_FIELDS);
+  if (next.status !== TERM_STATUS.RETIRED) for (const k of TERM_RETIRED_KEYS) delete next[k];
+  const err = validateTermInput(state.data, next, state.editingTermId);
+  if (err.length) { showError('termError', err); return; }
+
+  const note = $('fNote').value.trim();
+  if (!state.editingTermId) {
+    if (!log('added', next.id, withNote('Added.', note))) return;
+    state.data.terms.push(next);
+  } else {
+    const cur = termById(state.editingTermId);
+    const entry = termUpdateEntry(cur, next);
+    if (!entry) { termDialog.hide(); return; }
+    if (!log(entry.action, cur.id, withNote(entry.summary, note))) return;
+    if (next.status === TERM_STATUS.ACTIVE) for (const k of TERM_RETIRED_KEYS) delete cur[k];
+    Object.assign(cur, next);
+  }
+  termDialog.hide();
+  render();
+  setTimeout(() => goTo(next.id), UI.afterApplyGoToDelayMs);
+}
+
+function deleteTerm() {
+  const t = termById(state.editingTermId);
+  const usedBy = termsLinkingTo(state.data, t.id);
+  const msg = `Delete "${t.term}"?\n\nOnly delete terms added by mistake. If the term was ever used, retire it instead (Status: retired), so old documents stay readable.`
+    + (usedBy.length ? `\n\nLinked from: ${usedBy.join(', ')}. These links will break.` : '');
+  if (!confirm(msg)) return;
+  if (!log('deleted', t.id, `Deleted "${t.term}". ${$('fNote').value.trim()}`.trim())) return;
+  state.data.terms = state.data.terms.filter((x) => x !== t);
+  state.data.questions.forEach((q) => { q.terms = q.terms.filter((id) => id !== t.id); });
+  termDialog.hide();
+  render();
+}
+
+const questionById = (id) => state.data.questions.find((q) => q.id === id);
+
+function openQuestionEditor(id) {
+  state.editingQuestionId = id;
+  $('questionModalTitle').textContent = id ? `Edit ${id}` : 'Add question';
+  fillForm(QUESTION_FIELDS, id ? questionById(id) : blankQuestion());
+  show($('questionError'), false);
+  questionModal.show();
+}
+
+function applyQuestion(ev) {
+  ev.preventDefault();
+  const next = readForm(QUESTION_FIELDS);
+  const err = validateQuestionInput(state.data, next);
+  if (err.length) { showError('questionError', err); return; }
+  if (!state.editingQuestionId) {
+    const id = nextQuestionId(state.data.questions);
+    if (!log('question', id, `Added question "${next.title}".`)) return;
+    state.data.questions.push({ id, ...next });
+  } else {
+    const cur = questionById(state.editingQuestionId);
+    const entry = questionUpdateEntry(cur, next);
+    if (!log(entry.action, cur.id, entry.summary)) return;
+    Object.assign(cur, next);
+  }
+  questionModal.hide();
+  render();
+}
+
+// ============================================================================
+// WIRING: one delegated click handler, form and keyboard handlers
+// ============================================================================
+/** Click actions, named by data-action in the markup. Row actions get the element for its data-id / data-group. */
+const ACTIONS = {
+  'open': pickFile,
+  'reload': reloadFromDisk,
+  'save': save,
+  'reconnect': () => openHandle(state.reconnectHandle),
+  'add-term': (el) => openTermEditor(null, el.dataset.group),
+  'edit-term': (el) => openTermEditor(el.dataset.id),
+  'delete-term': deleteTerm,
+  'add-question': () => openQuestionEditor(null),
+  'edit-question': (el) => openQuestionEditor(el.dataset.id),
+};
+
+function wire() {
+  document.addEventListener('click', (e) => {
+    const el = e.target.closest('[data-action]');
+    if (el) ACTIONS[el.dataset.action]?.(el);
+  });
+  $('termForm').addEventListener('submit', applyTerm);
+  $('questionForm').addEventListener('submit', applyQuestion);
+  $('fStatus').addEventListener('change', toggleRetired);
+  $('fDefinition').addEventListener('input', () => setHtml($('fPreview'), rich($('fDefinition').value)));
+  $('fTerm').addEventListener('input', () => { if (!state.editingTermId) $('fId').value = slugify($('fTerm').value); });
+  $('search').addEventListener('input', render);
+  $('author').addEventListener('input', storeAuthor);
+  $('author').addEventListener('change', () => {
+    const name = $('author').value.trim();
+    if (state.data && name) { stampAuthor(name); render(); }
+  });
+  $('filePicker').addEventListener('change', async () => {
+    const f = $('filePicker').files[0];
+    if (!f) return;
+    try { load(await f.text(), 'upload', null); } catch (e) { alert(e.message); }
+    $('filePicker').value = '';
+  });
+  darkQuery.addEventListener('change', applyTheme);
+  window.addEventListener('hashchange', () => goTo(decodeHash(location.hash)));
+  window.addEventListener('scroll', queueSpy, { passive: true });
+  window.addEventListener('resize', () => { updateStickyVars(); queueSpy(); });
+  window.addEventListener('beforeunload', (e) => { if (state.dirty) { e.preventDefault(); e.returnValue = ''; } });
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); save(); }
+    if (e.key === '/' && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) { e.preventDefault(); $('search').focus(); }
+  });
+}
+
+// ============================================================================
+// START
+// ============================================================================
+/** Served over http (e.g. a local web server or the IDE preview): reads the file next to the page; true if it did. */
+async function startFromServer() {
+  let text = null;
+  try {
+    const res = await fetch(FILE_NAME, { cache: 'no-store' });
+    if (res.ok) text = await res.text();
+  } catch { /* fall through to the file handle */ }
+  if (text === null) return false;
+  load(text, 'http');
+  // Reuse a remembered handle only if it still exists and points at the same content.
+  try {
+    const h = await rememberedHandle();
+    if (h && await canWrite(h) && await (await h.getFile()).text() === text) {
+      state.handle = h;
+      state.source = 'file';
+      setDirty(false);
+    }
+  } catch (e) { if (e.name === 'NotFoundError') await forgetHandle(); }
+  return true;
+}
+
+(async function start() {
+  applyTheme();
+  fillOptions($('fStatus'), Object.values(TERM_STATUS).map((s) => [s, s]));
+  fillOptions($('qStatus'), Object.values(QUESTION_STATUS).map((s) => [s, s]));
+  $('fId').pattern = SLUG_RE.source;
+  wire();
+  try { $('author').value = localStorage.getItem(AUTHOR_STORAGE_KEY) ?? ''; } catch { /* optional */ }
+  $('author').classList.toggle('is-invalid', !$('author').value.trim());
+  show($('fsaHint'), !hasFsa);
+  if (location.protocol.startsWith('http') && await startFromServer()) return;
+  // Opened from disk: reuse the file handle remembered for this page.
+  const h = await rememberedHandle();
+  if (h) {
+    if (await canWrite(h)) { await openHandle(h); return; }
+    state.reconnectHandle = h;
+    $('reconnectName').textContent = h.name;
+    show($('btnReconnect'), true);
+  }
+  show($('emptyState'), true);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "terms.schema.json",
+  "title": "Terms (ubiquitous language)",
+  "description": "Source data of terms.html. In text fields, `code` is shown as code and [[term-id]] links to another term and shows its current name.",
+  "type": "object",
+  "required": ["groups", "terms", "questions", "changelog"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "groups": {
+      "description": "Sections of the page, sorted by title. Terms are sorted by group (in this order), then by name.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "$ref": "#/$defs/slug" },
+          "title": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "terms": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "term", "group", "definition", "uiLabel", "avoid", "status"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "$ref": "#/$defs/slug", "description": "Stable anchor, used in links such as terms.html#loan-period. Never change it." },
+          "term": { "type": "string", "minLength": 1, "description": "The term to use in specs, ACs, test cases and code." },
+          "group": { "$ref": "#/$defs/slug", "description": "Id of an entry in groups." },
+          "definition": { "type": "string", "minLength": 1 },
+          "uiLabel": { "type": "string", "description": "Text the user sees in the UI, quoted. Empty if none." },
+          "avoid": { "type": "array", "items": { "type": "string" }, "description": "Synonyms not to use, with an optional reason." },
+          "status": { "enum": ["active", "retired"] },
+          "replacedBy": { "type": "string", "description": "Retired terms: a term id or free text." },
+          "retiredSince": { "type": "string", "description": "Retired terms: date, release or event." }
+        }
+      }
+    },
+    "questions": {
+      "description": "Open questions and conflicts about terms.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "status", "terms", "text", "resolution"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^Q-[0-9]{2,}$" },
+          "title": { "type": "string", "minLength": 1 },
+          "status": { "enum": ["open", "resolved"] },
+          "terms": { "type": "array", "items": { "$ref": "#/$defs/slug" } },
+          "text": { "type": "string", "minLength": 1 },
+          "resolution": { "type": "string" }
+        }
+      }
+    },
+    "changelog": {
+      "description": "Append-only, oldest first.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["date", "author", "action", "ref", "summary"],
+        "additionalProperties": false,
+        "properties": {
+          "date": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}(:[0-9]{2})?(Z|[+-][0-9]{2}:[0-9]{2}))?$", "description": "Date, or date and time with UTC offset, e.g. 2026-10-19T14:32+02:00." },
+          "author": { "type": "string" },
+          "action": { "enum": ["added", "changed", "retired", "deleted", "question"] },
+          "ref": { "type": "string", "description": "Term id or question id; empty for the whole file." },
+          "summary": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "slug": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" }
+  }
+}
