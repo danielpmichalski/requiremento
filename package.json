@@ -1,6 +1,6 @@
 {
   "name": "requiremento",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Living requirements as JSON: shared terms, one requirements file per ticket, viewers/editors and checkers. No dependencies.",
   "keywords": [
     "requirements",
