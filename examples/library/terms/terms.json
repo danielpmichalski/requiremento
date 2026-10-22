@@ -1,5 +1,5 @@
 {
-  "$schema": "./terms.schema.json",
+  "$schema": "../../../schemas/terms.schema.json",
   "groups": [
     {
       "id": "catalogue",

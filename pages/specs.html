@@ -152,7 +152,7 @@
     <input id="search" class="form-control form-control-sm flex-shrink-1" style="max-width: 22rem" type="search"
            placeholder="Search ACs, rules, examples ( / )" aria-label="Search">
     <span id="fileStatus" class="badge text-bg-secondary d-none d-lg-inline"></span>
-    <button id="termsStatus" class="badge border-0 d-none d-md-inline" title="Load terms/terms.json"></button>
+    <button id="termsStatus" class="badge border-0 d-none d-md-inline" title="Load the terms file"></button>
     <input id="author" class="form-control form-control-sm flex-shrink-1 ms-auto" style="max-width: 12rem; min-width: 7rem"
            placeholder="Your name" required aria-label="Your name, for the changelog (required)"
            title="Your name, for the changelog (required)">
@@ -170,11 +170,11 @@
   <div id="emptyState" class="empty-state text-center d-none">
     <h1 class="h3">Specification</h1>
     <p class="text-body-secondary">This page shows and edits a requirements specification, for example
-      <code>specs/LIB-101.json</code>. Opened directly from disk, the browser can't read that file by itself,
-      so pick it once. Then load <code>terms/terms.json</code> too, so the page can show and check the terms.</p>
+      <code>LIB-101.json</code>. Opened directly from disk, the browser can't read that file by itself,
+      so pick it once. Then load the terms file too, so the page can show and check the terms.</p>
     <button id="btnReconnect" class="btn btn-primary d-none mb-2">Reconnect <span id="reconnectName"></span></button>
     <div><button id="btnOpenEmpty" class="btn btn-outline-primary">Open a spec file</button></div>
-    <p class="small text-body-secondary mt-3">Served by a web server, open <code>specs.html?spec=LIB-101.json</code>.</p>
+    <p class="small text-body-secondary mt-3">Started with <code>specky serve</code>, open <code>specs.html?spec=LIB-101.json</code>.</p>
     <p id="fsaHint" class="small text-body-secondary d-none">Your browser can't save files directly. You can read and edit
       here, then download the result and replace the file. Chrome and Edge save directly.</p>
   </div>
@@ -243,7 +243,7 @@
 <input id="termsPicker" type="file" accept=".json,application/json" hidden>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="specs-lib.js"></script>
+<script src="../lib/specs-lib.js"></script>
 <script>
 'use strict';
 const L = window.SpecLib;
@@ -304,7 +304,7 @@ const plain = (text) => String(text ?? '').replace(/\[\[([^\]]+)]]/g, (_, id) =>
   .replace(/[`*]/g, '').replace(/\s*\|\s*/g, ' ').replace(/\s+/g, ' ').trim();
 const short = (s, n = 260) => (s.length > n ? s.slice(0, n - 1) + '…' : s);
 const termOf = (id) => state.terms?.terms.find((t) => t.id === id);
-const termsPage = () => (state.spec?.meta.termsFile || '../terms/terms.json').replace(/terms\.json$/, 'terms.html');
+const termsPage = () => 'terms.html';
 const coll = (c) => state.spec[c];
 const find = (c, key) => (c === 'decisions' || c === 'withdrawn') ? coll(c)[key] : coll(c).find((x) => x.id === key);
 
@@ -520,8 +520,7 @@ const RENDER = {
     const rows = [['Ticket key', esc(m.key)], ['Title', esc(m.fullTitle)], ['Version', esc(m.version)], ['Date', esc(m.date)],
       ['Document status', esc(m.status)], ['Approved by', m.approvedBy ? `${esc(m.approvedBy)}${m.approvedOn ? ', ' + esc(m.approvedOn) : ''}` : '<span class="text-body-secondary">not yet</span>'],
       ['Related documents', (m.related ?? []).map((r) => `${esc(r.label)}: <code>${esc(r.path)}</code>`).join('<br>')],
-      ['Precedence', inline(m.precedence)],
-      ['Terms', `<code>${esc(m.termsFile)}</code>`]];
+      ['Precedence', inline(m.precedence)]];
     return `<div class="d-flex justify-content-end">${editBtn('meta', '', 'Edit document control')}</div>
       <div class="table-responsive"><table class="table table-sm table-bordered"><tbody>${rows.map(([k, v]) => `<tr><th class="text-nowrap" style="width: 12rem">${k}</th><td>${v}</td></tr>`).join('')}</tbody></table></div>`;
   },
@@ -1100,7 +1099,7 @@ async function ensureWritableHandle() {
   if (state.handle && await state.handle.queryPermission({ mode: 'readwrite' }) === 'granted') return state.handle;
   if (state.handle && await state.handle.requestPermission({ mode: 'readwrite' }) === 'granted') return state.handle;
   if (!hasFsa) return null;
-  alert(`Choose specs/${state.fileName} in your repository to save into it.`);
+  alert(`Choose ${state.fileName} in your project to save into it.`);
   try {
     const [h] = await window.showOpenFilePicker({ id: 'sbe-spec', types: JSON_TYPES });
     if (await h.requestPermission({ mode: 'readwrite' }) !== 'granted') return null;
@@ -1196,12 +1195,11 @@ async function pickTerms() {
     await idbSet(termsKey(), h);
   } catch (e) { if (e.name !== 'AbortError') alert('Could not load terms.json: ' + e.message); }
 }
-/** Loads terms.json next to the spec (over http) or from the remembered handle; quietly does nothing otherwise. */
+/** Loads terms.json from the same server as the spec (specky serve) or from the remembered handle; quietly does nothing otherwise. */
 async function restoreTerms() {
-  const rel = state.spec?.meta.termsFile || '../terms/terms.json';
   if (state.specUrl) {
     try {
-      const url = new URL(rel, state.specUrl);
+      const url = new URL('terms.json', state.specUrl);
       const res = await fetch(url, { cache: 'no-store' });
       if (res.ok) { loadTerms(await res.text(), `${url.pathname}, read via the web server`, true); return; }
     } catch { /* fall through */ }
@@ -1276,7 +1274,7 @@ function log(action, ref, summary) {
 const FORMS = {
   meta: [['key', 'Ticket key', 'text', 3], ['version', 'Version', 'text', 2], ['date', 'Date', 'date', 3], ['status', 'Document status', 'text', 4],
     ['title', 'Short title', 'text', 6], ['fullTitle', 'Full title', 'text', 6], ['approvedBy', 'Approved by', 'text', 6], ['approvedOn', 'Approved on', 'text', 6],
-    ['related', 'Related documents (one per line: label | path)', 'related'], ['precedence', 'Precedence', 'md'], ['termsFile', 'Terms file (relative to the spec file)', 'text']],
+    ['related', 'Related documents (one per line: label | path)', 'related'], ['precedence', 'Precedence', 'md']],
   terms: [['terms', 'Term ids from terms.json (one per line)', 'lines']],
   sections: [['id', 'Id (anchor)', 'slug', 4], ['title', 'Title', 'text', 5], ['list', 'Shows', 'select:lists', 3], ['body', 'Text before', 'md'], ['after', 'Text after', 'md']],
   dataKinds: [['id', 'Id (anchor: data-kind-<id>)', 'slug', 3], ['label', 'Name of one item, e.g. Version', 'text', 4], ['title', 'Title, e.g. Versions', 'text', 5],

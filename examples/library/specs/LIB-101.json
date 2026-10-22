@@ -1,5 +1,5 @@
 {
-  "$schema": "specs.schema.json",
+  "$schema": "../../../schemas/specs.schema.json",
   "meta": {
     "key": "LIB-101",
     "title": "Renew a loan online",
@@ -19,8 +19,7 @@
         "path": "docs/email-templates.md"
       }
     ],
-    "precedence": "This document is the requirements baseline of LIB-101. Where the lending policy describes renewals differently, this document wins.",
-    "termsFile": "../terms/terms.json"
+    "precedence": "This document is the requirements baseline of LIB-101. Where the lending policy describes renewals differently, this document wins."
   },
   "sections": [
     {

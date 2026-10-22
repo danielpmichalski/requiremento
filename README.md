@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/images/logo.svg" alt="specky" width="300"></p>
+
 # Specification by Example
 
 A small, dependency-free toolkit for writing **living requirements** as plain JSON files, in the spirit of
@@ -6,15 +8,18 @@ A small, dependency-free toolkit for writing **living requirements** as plain JS
 
 You keep two kinds of files in your repository:
 
-| File | What it holds | Viewer / editor | Checker |
-|---|---|---|---|
-| `terms/terms.json` | The **terms** of your domain: one shared vocabulary, defined once | `terms/terms.html` | `terms/check.mjs` |
-| `specs/<TICKET>.json` | One **specification per ticket**: stories, business rules, concrete examples, acceptance criteria (Gherkin), test cases, risks, decisions | `specs/specs.html` | `specs/check.mjs` |
+| File | What it holds | Viewer / editor |
+|---|---|---|
+| `terms/terms.json` | The **terms** of your domain: one shared vocabulary, defined once | `terms.html` |
+| `specs/<TICKET>.json` | One **specification per ticket**: stories, business rules, concrete examples, acceptance criteria (Gherkin), test cases, risks, decisions | `specs.html` |
 
-Both pages are single HTML files without a build step. Both checkers are single Node scripts without dependencies.
+**specky** is the tool around them: a command line, two single-file HTML pages to read and edit the files, and the
+checks. It is an npm package without dependencies. The tool and your data are separate: the tool is installed at a
+version you choose, your files stay in your repository, and a small `specky.json` says where. Upgrading the tool never
+touches your data.
+
 The JSON is the source of truth, so it diffs, reviews and merges like code, and people and scripts can edit it.
-
-The repository ships with a complete worked example (`specs/LIB-101.json`: renewing a library loan) that uses every
+The repository of specky has a complete worked example (`examples/library/`: renewing a library loan) that uses every
 feature.
 
 ---
@@ -22,18 +27,21 @@ feature.
 ## Contents
 
 - [Why](#why)
-- [Quick start](#quick-start)
-- [Repository layout](#repository-layout)
+- [What it looks like](#what-it-looks-like)
+- [Getting started](#getting-started)
+- [Commands](#commands)
+- [Your project](#your-project)
 - [The terms file](#the-terms-file)
 - [The specification file](#the-specification-file)
 - [IDs](#ids)
 - [Links and Markdown](#links-and-markdown)
 - [Checks](#checks)
 - [Editing: people, scripts and AI agents](#editing-people-scripts-and-ai-agents)
-- [Using it in your own project](#using-it-in-your-own-project)
+- [Rolling it out in a team](#rolling-it-out-in-a-team)
+- [Upgrading](#upgrading)
 - [Browser support](#browser-support)
 - [FAQ](#faq)
-- [License](#license)
+- [Contributing and license](#contributing-and-license)
 
 ---
 
@@ -51,59 +59,81 @@ means three things. This toolkit pushes against that with a few simple ideas:
 4. **IDs are forever.** Tests, tickets and reviews refer to IDs, so an ID is never renamed or reused. It is withdrawn.
 5. **Plain files.** JSON in git, one stable key order, so every change shows up as a small diff.
 
-## Quick start
+## What it looks like
 
-You need Node 18 or newer to run the checkers, and Chrome or Edge to edit comfortably. Nothing to install.
+`specky serve` shows your JSON files as readable pages. The pages are also the editor.
+
+**A specification** with its overview, the table of contents and a status filter for the acceptance criteria:
+
+![A specification page: counts of stories, rules, examples and acceptance criteria, and the table of contents](docs/images/specs-overview.png)
+
+**Search and reference data.** Every mention of a reference data item (`LN-4`, `MEM-2`) or a term links to its item. The
+search highlights matches across the whole spec:
+
+![The search for "overdue" highlighting matches in the reference data and in the rules](docs/images/specs-reference-data.png)
+
+**The terms** of the domain, defined once. The words to avoid are listed next to each definition:
+
+![The terms page: terms in groups, each with its definition, UI label and words to avoid](docs/images/terms.png)
+
+## Getting started
+
+You need Node 18 or newer, and Chrome or Edge to edit comfortably. Run this in the folder where the requirements
+should live, usually the root of your repository:
 
 ```bash
-git clone <this repository>
-cd specification-by-example
-
-# Check the example files
-node terms/check.mjs
-node specs/check.mjs
+npm install --save-dev specky@0.1.0   # pin the version you want
+npx specky init                       # creates specky.json and an empty terms file
+npx specky new SHOP-42 "Checkout"     # creates an empty spec for a ticket
+npx specky serve                      # shows the pages at http://localhost:8000
 ```
 
-Expected output:
+Open `http://localhost:8000`, pick the terms or the spec, and start writing. Every change in the pages adds a
+changelog entry. Commit the JSON files like any other source.
 
-```
-terms/terms.json: OK (14 terms, 2 questions)
-specs/LIB-101.json: OK (12 ACs, 10 rules, 19 examples, 6 test cases, 33 data items)
-```
-
-To **read and edit** in the browser, either:
-
-- **Open the file directly.** Open `specs/specs.html` (or `terms/terms.html`) in Chrome or Edge, click *Open* once and pick
-  the JSON file. The page remembers the file. *Save* writes to it with the File System Access API.
-- **Or serve the folder** and let the page load the files itself:
-
-  ```bash
-  python3 -m http.server 8000
-  # http://localhost:8000/specs/specs.html?spec=LIB-101.json
-  # http://localhost:8000/terms/terms.html
-  ```
-
-  When served this way, `specs.html` also loads `terms/terms.json` through the spec's `meta.termsFile`.
+No `package.json` (for example in a Gradle or Maven project)? Use `npx specky@0.1.0 <command>` instead. It needs only
+Node, and the version in the command is the version you get.
 
 The pages load Bootstrap from a CDN, so you need to be online for the styling the first time.
 
-## Repository layout
+## Commands
+
+| Command | What it does |
+|---|---|
+| `specky init` | Creates `specky.json` and an empty terms file. Existing files are kept. |
+| `specky new <KEY> ["title"]` | Creates an empty spec file for a ticket, for example `SHOP-42`. |
+| `specky check [spec.json ...]` | Checks the terms file and the given spec files (default: all of them). Exit code 1 on errors, so it works as a CI step. See [Checks](#checks). |
+| `specky serve [--port 8000]` | Starts a local web server that shows the pages on your files. Press Ctrl+C to stop. |
+| `specky --version`, `specky --help` | |
+
+`specky serve` only reads your files. *Save* in the pages writes into the file with the File System Access API (Chrome
+or Edge; see [Browser support](#browser-support)). The pages are in `node_modules/specky/pages/`, so you can also open
+them straight from disk, click *Open* once and pick the JSON file.
+
+## Your project
+
+The tool adds no files to your project except the config. This is all of it:
 
 ```
-terms/
-  terms.html            viewer and editor of the terms
-  terms.json            the example terms (library lending domain)
-  terms.schema.json     JSON Schema of terms.json
-  check.mjs             checker for the things a schema can't express
-specs/
-  specs.html             viewer and editor of one specification
-  LIB-101.json          the example specification
-  specs.schema.json      JSON Schema of a specification
-  specs-lib.js           shared logic: key order, serialization, checks (used by specs.html and check.mjs)
-  check.mjs             checker
-LICENSE
-README.md
+your-project/
+  specky.json            { "terms": "terms/terms.json", "specs": "specs" }
+  terms/terms.json
+  specs/SHOP-42.json
 ```
+
+### The config file
+
+`specky.json` is looked up in the current folder and then in each parent folder, like `package.json`. Both keys are
+optional; the values below are the defaults. Paths are relative to the config file.
+
+| Key | Meaning | Default |
+|---|---|---|
+| `terms` | The terms file | `terms/terms.json` |
+| `specs` | The folder with the spec files (every `.json` file there that uses the specs schema) | `specs` |
+
+To keep the requirements elsewhere, change the config and move the files, for example
+`{ "terms": "docs/terms.json", "specs": "docs/requirements" }`. Without a `specky.json`, the defaults apply relative to
+the current folder.
 
 ## The terms file
 
@@ -147,9 +177,9 @@ format. Top-level keys:
 
 | Key | Content |
 |---|---|
-| `meta` | Ticket key, titles, version, date, approval, related documents, `precedence` statement, path to the terms file |
+| `meta` | Ticket key, titles, version, date, approval, related documents, `precedence` statement |
 | `sections` | The page, in order: Markdown text and an optional generated list (`"list": "rules"`, `"data"`, ...) |
-| `terms` | Ids of the terms the spec relies on (definitions live only in `terms.json`) |
+| `terms` | Ids of the terms the spec relies on (definitions live only in the terms file) |
 | `dataKinds`, `data` | **Reference data** that examples and tests use: kinds with columns, and the items |
 | `stories` | User stories (`US-...`) with a readiness note |
 | `ruleGroups`, `rules` | Business rules (`RULE-...`), grouped under a story |
@@ -259,19 +289,19 @@ Automatic links:
 - `[[term-id]]` links a term and shows its current name. Rename a term and every spec shows the new name.
 - Anything in Gherkin scenarios is linked too. *Copy Gherkin* on an AC copies its scenarios as a `.feature` file.
 
-Permalinks: `specs/specs.html#AC-02a` opens an item, `specs/specs.html#LN-4` a data item, `terms/terms.html#loan-period` a term.
+Permalinks: `specs.html#AC-02a` opens an item, `specs.html#LN-4` a data item, `terms.html#loan-period` a term.
 
 ## Checks
 
-The JSON Schema describes shape. The checkers cover what a schema can't. Run them in CI, in a pre-commit hook, or after
+The JSON Schema describes shape. `specky check` covers what a schema can't. Run it in CI, in a pre-commit hook, or after
 any hand or script edit. The pages run the same checks before they save.
 
 ```bash
-node terms/check.mjs [path/to/terms.json]
-node specs/check.mjs  [spec.json ...]      # default: every spec file in this folder
+npx specky check                       # the terms file and every spec file named by specky.json
+npx specky check specs/SHOP-42.json    # only the given spec files (the terms file is still used)
 ```
 
-Exit code 1 on errors, so both work as CI steps.
+Exit code 1 on errors.
 
 **Terms: errors**
 
@@ -294,54 +324,50 @@ Exit code 1 on errors, so both work as CI steps.
 **Specs: warnings** (do not fail)
 
 - a story without ACs, an unused data item, an AC using an example of a rule it does not list
-- terms that are missing in `terms.json` or retired
+- terms that are missing in the terms file or retired
 - a list with items but no section that shows it
 - the file is not in the format `specs.html` writes (the next save from the page reformats it)
 
-Validate against the schemas with any JSON Schema 2020-12 validator, for example:
+The schemas ship with the package. Validate against them with any JSON Schema 2020-12 validator, for example:
 
 ```bash
-npx ajv-cli@5 validate --spec=draft2020 -s specs/specs.schema.json -d specs/LIB-101.json
-npx ajv-cli@5 validate --spec=draft2020 -s terms/terms.schema.json -d terms/terms.json
+npx ajv-cli@5 validate --spec=draft2020 -s node_modules/specky/schemas/specs.schema.json -d specs/SHOP-42.json
+npx ajv-cli@5 validate --spec=draft2020 -s node_modules/specky/schemas/terms.schema.json -d terms/terms.json
 ```
 
 ## Editing: people, scripts and AI agents
 
 - **People** use the pages. Every change adds a changelog entry with the author's name (asked once and remembered),
   and repeated unsaved edits of the same item are merged into one entry.
-- **Scripts and AI agents** edit the JSON directly, **append a changelog entry themselves**, and run the checkers.
-  Keep IDs stable and withdraw instead of deleting. If you write specs with `specs/specs-lib.js`, its `serialize(spec)`
+- **Scripts and AI agents** edit the JSON directly, **append a changelog entry themselves**, and run `specky check`.
+  Keep IDs stable and withdraw instead of deleting. If you write specs with `specky/lib/specs-lib.js`, its `serialize(spec)`
   produces the exact key order and formatting the page uses, so diffs stay minimal:
 
   ```js
-  const { check, serialize } = require('./specs/specs-lib.js');
+  const { check, serialize } = require('specky/lib/specs-lib.js');
   const { errors, warnings } = check(spec, terms);
-  fs.writeFileSync('specs/LIB-101.json', serialize(spec));
+  fs.writeFileSync('specs/SHOP-42.json', serialize(spec));
   ```
 
-- The changelog is append-only. Actions in `terms.json`: `added`, `changed`, `retired`, `deleted`, `question`.
+- The changelog is append-only. Actions in the terms file: `added`, `changed`, `retired`, `deleted`, `question`.
   Actions in a spec: `added`, `changed`, `withdrawn`, `deleted`, `decision`.
 
-## Using it in your own project
+## Rolling it out in a team
 
-1. Copy `terms/` and `specs/` into your repository, for example `docs/terms/` and `docs/requirements/`. Keep the two
-   folders side by side. `meta.termsFile` (default `../terms/terms.json`) is the path from the spec to the terms.
-2. Delete the example data: replace `terms/terms.json` with empty `groups`, `terms`, `questions` and `changelog`
-   arrays, and start a spec from `specs/LIB-101.json` by changing `meta`, then clearing the other arrays you do not need.
-   (Keep the key order; open it once in `specs.html` and save to normalize it.)
-3. Name the spec file after your ticket (`meta.key`, for example `SHOP-42`, and `SHOP-42.json`).
-4. Add the checkers to CI:
+1. Install a pinned version and run `specky init` (see [Getting started](#getting-started)).
+2. Start with the terms. Writing down five terms and their forbidden synonyms resolves more arguments than a dozen
+   documents.
+3. Create a spec per ticket with `specky new`. The file is named after the ticket key (`meta.key`). For a full spec to
+   read, see `examples/library/specs/LIB-101.json` in the specky repository.
+4. Add `npx specky check` to CI.
+5. Decide on conventions: the area part of the IDs, who may set a spec to `implemented`, and whether the product owner
+   approves in `meta.approvedBy` and `meta.approvedOn`.
 
-   ```bash
-   node docs/terms/check.mjs
-   node docs/requirements/check.mjs
-   ```
+## Upgrading
 
-5. Decide on conventions for your team: the area part of the IDs, who may set a spec to `implemented`, and whether the
-   product owner approves in `meta.approvedBy` and `meta.approvedOn`.
-
-Tip: start with the terms. Writing down five terms and their forbidden synonyms resolves more arguments than a
-dozen documents.
+Change the version (`npm install --save-dev specky@<new version>`, or the version in your `npx` command), then run
+`specky check`. Your files are not part of the package, so an upgrade never rewrites them. If a release changes the
+file format, its release notes say what to change, and the check tells you where.
 
 ## Browser support
 
@@ -352,7 +378,7 @@ dozen documents.
 | Remember the opened file | yes (IndexedDB) | partly |
 
 Files opened straight from disk (`file://`) can't be read by the page by itself, because browsers block that. Pick the
-file once, or serve the folder.
+file once, or use `specky serve`.
 
 ## FAQ
 
@@ -364,8 +390,8 @@ Markdown stays available inside every text field.
 Because an example is where misunderstandings surface. If nobody can name a concrete case, the rule is not understood yet.
 
 **Can I use my own AC statuses or section layout?**
-Sections are free: choose their order, titles and which list each one shows. The statuses are fixed in `specs/specs-lib.js`
-(`AC_STATUSES`) and `specs/specs.schema.json`. Change both if you must.
+Sections are free: choose their order, titles and which list each one shows. The statuses of acceptance criteria are
+fixed by the tool (see the table above).
 
 **Do I need all the sections?**
 No. Leave a collection empty and drop its section. The checker warns only about a non-empty list no section shows.
@@ -374,6 +400,6 @@ No. Leave a collection empty and drop its section. The checker warns only about 
 No. The pages only read and write the files you pick. The only network request is Bootstrap from a CDN.
 Download it and change the `<link>` and `<script>` tags if you need to work offline or behind a firewall.
 
-## License
+## Contributing and license
 
-MIT. See [LICENSE](LICENSE).
+To work on specky itself, see [CONTRIBUTING.md](CONTRIBUTING.md). MIT license, see [LICENSE](LICENSE).

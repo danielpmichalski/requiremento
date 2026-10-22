@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "specs.schema.json",
   "title": "Requirements specification",
-  "description": "Source data of specs.html: one file per ticket, e.g. LIB-101.json. Text fields are Markdown: paragraphs, `-` and `1.` lists, pipe tables, `###` headings, **bold**, *italic* and `code`. IDs of the spec (AC-01, RULE-LOAN-03, ...) and of reference data items (MEM-1, BK-2, ...) are linked automatically. [[term-id]] links a term of terms/terms.json and shows its current name.",
+  "description": "Source data of specs.html: one file per ticket, e.g. LIB-101.json. Text fields are Markdown: paragraphs, `-` and `1.` lists, pipe tables, `###` headings, **bold**, *italic* and `code`. IDs of the spec (AC-01, RULE-LOAN-03, ...) and of reference data items (MEM-1, BK-2, ...) are linked automatically. [[term-id]] links a term of the terms file and shows its current name.",
   "type": "object",
   "required": [
     "meta",
@@ -41,8 +41,7 @@
         "approvedBy",
         "approvedOn",
         "related",
-        "precedence",
-        "termsFile"
+        "precedence"
       ],
       "additionalProperties": false,
       "properties": {
@@ -101,10 +100,6 @@
         },
         "precedence": {
           "type": "string"
-        },
-        "termsFile": {
-          "type": "string",
-          "description": "Path of terms.json, relative to this file. Usually ../terms/terms.json."
         }
       }
     },

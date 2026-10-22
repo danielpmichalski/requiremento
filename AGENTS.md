@@ -1,62 +1,74 @@
 # Specification by Example
 
-Dependency-free toolkit for living requirements as JSON: a shared **terms** file (ubiquitous language) and one
-**specification** file per ticket (stories, rules, examples, acceptance criteria, test cases). Two single-file HTML
-viewers/editors and two Node checkers. No build step, no package manager, no dependencies.
+Dependency-free npm package (`specky`) for living requirements as JSON: a shared **terms** file (ubiquitous language)
+and one **specification** file per ticket (stories, rules, examples, acceptance criteria, test cases). A small CLI, two
+single-file HTML viewers/editors and the checkers. No build step, no dependencies.
 
-See [README.md](README.md) for the user-facing description. This file is for agents working in this repository.
+**Tool and data are separate.** The package (`bin/`, `lib/`, `pages/`, `schemas/`) never contains project data. Data
+lives in the user's repository, and `specky.json` says where. `examples/library/` is such a project.
+
+See [README.md](README.md) for the user-facing description (written for people who use specky) and
+[CONTRIBUTING.md](CONTRIBUTING.md) for the developer instructions. This file holds the rules for agents working in this
+repository.
 
 ## Layout
 
 ```
-terms/   terms.json (example data), terms.schema.json, terms.html (viewer/editor), check.mjs
-specs/   LIB-101.json (example spec), specs.schema.json, specs.html (viewer/editor), specs-lib.js, check.mjs
+package.json   name, version, bin, files (bin, lib, pages, schemas)
+bin/           specky.mjs (CLI: init, new, check, serve)
+lib/           config.mjs, check.mjs, check-terms.mjs, serve.mjs, init.mjs, specs-lib.js
+pages/         terms.html, specs.html (viewers/editors)
+schemas/       terms.schema.json, specs.schema.json
+examples/library/   specky.json, terms/terms.json, specs/LIB-101.json (example project, not part of the package)
 ```
 
-- `specs/specs-lib.js` is shared by `specs.html` (classic script, also from `file://`) and `specs/check.mjs` (CommonJS).
-  It owns the key order, `serialize`, the ID patterns and every check. Change checks there, never in two places.
-- `terms/terms.html` has its own copies of the term checks and the sort order; `terms/check.mjs` mirrors them. Keep
+- `lib/specs-lib.js` is shared by `pages/specs.html` (classic script, also from `file://`) and `lib/check.mjs`
+  (CommonJS). It owns the key order, `serialize`, the ID patterns and every spec check. Change checks there, never in two
+  places.
+- `pages/terms.html` has its own copies of the term checks and the sort order; `lib/check-terms.mjs` mirrors them. Keep
   the page and the checker in step.
-- `specs/specs.schema.json` and `terms/terms.schema.json` describe the shape. The checkers cover what a schema can't.
+- `schemas/specs.schema.json` and `schemas/terms.schema.json` describe the shape. The checkers cover what a schema can't.
   A change to a field touches the schema, `ORDER`/`TEXT_FIELDS`/`REF_FIELDS` in `specs-lib.js`, the form definitions in
-  `specs.html`, and the README, together.
+  `pages/specs.html`, and the README, together.
+- Tool code finds data only through `lib/config.mjs` (`specky.json`). Never hard-code a data path in `lib/` or `bin/`.
+- `specky serve` maps the pages and the data onto one flat URL space (`/specs.html`, `/terms.json`, `/<SPEC>.json`), so
+  the pages fetch `terms.json` and `?spec=NAME.json` relative to themselves. Keep that in step with `lib/serve.mjs`.
 
 ## Commands
 
 ```bash
-node terms/check.mjs                       # check terms/terms.json
-node specs/check.mjs                       # check every spec in specs/
-node specs/check.mjs specs/LIB-101.json    # check one file
+# Run from examples/library (or npm run check:example from the root)
+node ../../bin/specky.mjs check                       # terms file and every spec
+node ../../bin/specky.mjs check specs/LIB-101.json    # one spec file
+node ../../bin/specky.mjs serve                       # http://localhost:8000/specs.html?spec=LIB-101.json
 
-# Schema validation (needs network the first time)
-npx ajv-cli@5 validate --spec=draft2020 -s specs/specs.schema.json -d specs/LIB-101.json
-npx ajv-cli@5 validate --spec=draft2020 -s terms/terms.schema.json -d terms/terms.json
-
-# Serve the pages (the files can't be read from file:// without the file picker)
-python3 -m http.server 8000    # http://localhost:8000/specs/specs.html?spec=LIB-101.json
+# Schema validation (needs network the first time), from the repository root
+npx ajv-cli@5 validate --spec=draft2020 -s schemas/specs.schema.json -d examples/library/specs/LIB-101.json
+npx ajv-cli@5 validate --spec=draft2020 -s schemas/terms.schema.json -d examples/library/terms/terms.json
 ```
 
 There are no unit tests. After any change, run both checkers and the schema validation, and for a change to a page,
-open it in Chrome or Edge and click through the affected part.
+open it through `specky serve` in Chrome or Edge and click through the affected part.
 
 ## Hard rules
 
 - **Keep the repository generic.** It is a public example. Never add the name of a real company, product, client,
   person or ticket system, and never copy content from a private project. The example domain is a public library; stay
   in it. Use "Jane Doe" and "John Roe" as example authors.
-- **No dependencies.** The checkers use only Node built-ins. The pages load Bootstrap 5.3.3 from a CDN and nothing
+- **No dependencies.** The package has no `dependencies`, and the CLI uses only Node built-ins. The pages load Bootstrap 5.3.3 from a CDN and nothing
   else. Don't add a bundler, a framework or an npm package.
-- **Node 18+, ES modules for `check.mjs`, CommonJS-compatible `specs-lib.js`.** Don't turn `specs-lib.js` into an ES module,
+- **Node 18+, ES modules (`.mjs`) for the CLI, CommonJS-compatible `specs-lib.js`.** Don't turn `specs-lib.js` into an ES module,
   or `specs.html` can't load it from `file://`.
 - **IDs are stable.** Never rename or reuse an ID in the example data. Withdraw it (see `withdrawn`). This is the rule the
   tool teaches, so the example must follow it.
-- **The example must stay valid.** `terms/terms.json` and `specs/LIB-101.json` pass their checker without errors or
+- **The example must stay valid.** `examples/library/terms/terms.json` and `examples/library/specs/LIB-101.json` pass `specky check` without errors or
   warnings, and the schema validation. A change that breaks them is not done.
 
 ## Editing the data files
 
 The JSON files are source data. Edit them directly, then check.
 
+- The example data is under `examples/library/`; edit it there. Don't put project data into `bin/`, `lib/`, `pages/` or `schemas/`.
 - **Spec files** are written in a fixed key order and format (`serialize` in `specs-lib.js`: 2 spaces, trailing newline).
   A hand edit that changes key order or indentation only produces a warning, but prefer to keep the format. To normalize,
   generate the file with `serialize(spec)` or save it once from `specs.html`.
@@ -64,10 +76,10 @@ The JSON files are source data. Edit them directly, then check.
   item's ID in `ref` (empty for the whole file) and a one-line `summary`. Changelogs are append-only, oldest first.
   Spec actions: `added`, `changed`, `withdrawn`, `deleted`, `decision`. Terms actions: `added`, `changed`,
   `retired`, `deleted`, `question`.
-- **Sorting in `terms.json`:** groups by title, then terms by group order, then by name (`localeCompare`, base
+- **Sorting in the terms file:** groups by title, then terms by group order, then by name (`localeCompare`, base
   sensitivity). The checker reports the first violation.
 - **Term links** are `[[term-id]]` only. Don't use `[[id|label]]`: `specs-lib.js` accepts it, `terms.html`,
-  `terms/check.mjs` and the rest of `specs.html` don't.
+  `lib/check-terms.mjs` and the rest of `specs.html` don't.
 - **Rules need examples, examples need an AC.** Every rule has at least one example, and every example is listed by at
   least one AC. The checker fails otherwise.
 - **Mentions are checked.** Any text that mentions a spec ID or a reference data ID that doesn't exist fails the check,

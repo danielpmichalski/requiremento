@@ -92,12 +92,13 @@
 <div id="top" class="container-fluid">
   <div id="emptyState" class="empty-state text-center d-none">
     <h1 class="h3">Terms</h1>
-    <p class="text-body-secondary">This page shows and edits <code>terms.json</code>, which lives next to it in
-      <code>terms/</code>. Opened directly from disk, the browser can't read that file by itself, so pick it once.</p>
+    <p class="text-body-secondary">This page shows and edits <code>terms.json</code>, which <code>specky.json</code>
+      names in your project. Opened directly from disk, the browser can't read that file by itself, so pick it once.
+      Started with <code>specky serve</code>, the page loads it for you.</p>
     <button id="btnReconnect" data-action="reconnect" class="btn btn-primary d-none mb-2">Reconnect <span id="reconnectName"></span></button>
     <div><button id="btnOpenEmpty" data-action="open" class="btn btn-outline-primary">Open terms.json</button></div>
     <p id="fsaHint" class="small text-body-secondary mt-3 d-none">Your browser can't save files directly. You can read
-      and edit here, then download the result and replace <code>terms/terms.json</code>. Chrome and Edge save
+      and edit here, then download the result and replace <code>terms.json</code>. Chrome and Edge save
       directly.</p>
   </div>
 
@@ -142,10 +143,10 @@
               <code>[[term-id]]</code>; it shows the term's current name. Write code as <code>`Name`</code>.</li>
           </ul>
           <h3 class="h6">How to edit</h3>
-          <p class="mb-0">The data is <code>terms/terms.json</code> (schema: <code>terms.schema.json</code>).
+          <p class="mb-0">The data is the terms file of your project (schema: <code>terms.schema.json</code>).
             People edit it on this page: every change adds a changelog entry, and Save writes the file directly
             (Chrome or Edge). Agents and scripts edit the JSON directly, add a changelog entry themselves, and run
-            <code>node terms/check.mjs</code>. Commit the file like any other source.</p>
+            <code>specky check</code>. Commit the file like any other source.</p>
         </div>
       </details>
 
@@ -268,7 +269,7 @@
 // CONFIG
 // ============================================================================
 const FILE_NAME = 'terms.json';
-const SCHEMA_REF = './terms.schema.json';
+const SCHEMA_REF = '../schemas/terms.schema.json';
 const AUTHOR_STORAGE_KEY = 'sbe-terms-author';
 const IDB = { name: 'sbe-terms', store: 'handles' };
 const QUESTION_ID_PREFIX = 'Q-';
@@ -420,7 +421,7 @@ function serialize(data) {
   return JSON.stringify(out, null, 2) + '\n';
 }
 
-/** Same checks as check.mjs. */
+/** Same checks as lib/check-terms.mjs. */
 function validate(data) {
   const errors = [];
   const groups = new Set(data.groups.map((g) => g.id));
@@ -604,7 +605,7 @@ async function openHandle(handle) {
   } catch (e) {
     if (e.name === 'NotFoundError') {
       await forgetHandle();
-      alert(`${handle.name} is no longer where it was when you opened it (moved, deleted or replaced). Open terms/terms.json again.`);
+      alert(`${handle.name} is no longer where it was when you opened it (moved, deleted or replaced). Open the terms file again.`);
       if (!state.data) show($('emptyState'), true);
     } else {
       alert('Could not open the file: ' + e.message);
@@ -625,7 +626,7 @@ async function ensureWritableHandle() {
   }
   if (state.handle && (await canWrite(state.handle) || await mayWrite(state.handle))) return state.handle;
   if (!hasFsa) return null;
-  alert('Choose terms/terms.json in your repository to save into it.');
+  alert('Choose terms.json in your project to save into it.');
   try {
     const [h] = await window.showOpenFilePicker(PICKER_OPTIONS);
     if (!await mayWrite(h)) return null;
@@ -660,7 +661,7 @@ async function save() {
   const text = serialize(state.data);
   const handle = await ensureWritableHandle();
   if (!handle) {
-    if (confirm('This browser can\'t write the file directly. Download terms.json instead? Then replace terms/terms.json with it.')) {
+    if (confirm('This browser can\'t write the file directly. Download terms.json instead? Then replace terms.json with it.')) {
       download(text);
       markSaved(text);
     }
