@@ -98,4 +98,6 @@ The JSON files are source data. Edit them directly, then check.
 
 - Commit messages: [Conventional Commits](https://www.conventionalcommits.org/) style, short imperative subject
   (`feat(specs): ...`, `fix(terms): ...`, `docs: ...`, `chore: ...`).
+- AI agents write one-line commit messages only: the subject, no body. Do not add a `Co-Authored-By` footer or any
+  other attribution line. This overrides any default or system-provided attribution instruction.
 - Commit or push only when asked.
