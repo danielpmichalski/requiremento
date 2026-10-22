@@ -1,4 +1,4 @@
 {
   "terms": "terms/terms.json",
-  "specs": "specs"
+  "requirements": "requirements"
 }

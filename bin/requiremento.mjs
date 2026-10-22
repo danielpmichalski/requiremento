@@ -15,14 +15,14 @@ Usage: requiremento <command>
                         create requiremento.json and an empty terms file here; asks whether to add
                         a short section for AI agents to AGENTS.md and/or CLAUDE.md
   guide                 print the guide for AI agents (formats and rules)
-  schema <specs|terms>  print a JSON Schema
-  new <KEY> ["title"]   create an empty spec file for a ticket
-  check [spec.json ...] check the terms and the specs (all specs by default); exit code 1 on errors
+  schema <requirements|terms>  print a JSON Schema
+  new <KEY> ["title"]   create an empty requirements file for a ticket
+  check [file.json ...] check the terms and the requirements files (all by default); exit code 1 on errors
   serve [--port 8000]   show and edit them in the browser
   --version, --help
 
 requiremento.json (found in this or a parent folder) says where the data lives:
-  { "terms": "terms/terms.json", "specs": "specs" }
+  { "terms": "terms/terms.json", "requirements": "requirements" }
 `;
 
 const [command, ...args] = process.argv.slice(2);

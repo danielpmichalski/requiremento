@@ -116,7 +116,7 @@
           <p>These terms are the <strong>ubiquitous language</strong> of the project, in the sense of Domain-Driven
             Design (Eric Evans): one shared vocabulary that product owners, stakeholders, developers and testers all
             use in the same way, in conversations, requirements, acceptance criteria, test cases, the user manual, the
-            UI and the code. If a word means one thing in a meeting, another in a spec and a third in the code, bugs
+            UI and the code. If a word means one thing in a meeting, another in a requirement and a third in the code, bugs
             follow.</p>
           <h3 class="h6">How to use the terms</h3>
           <ul>
@@ -126,7 +126,7 @@
             <li><strong>One concept, one term.</strong> Don't use the synonyms marked <span class="chip chip-avoid">avoid</span>
               in new text.</li>
             <li><strong>UI labels are separate.</strong> <span class="chip chip-ui">UI</span> is the text users see
-              (possibly in another language). Specs and the user manual quote it ("Renew loan"); everywhere else, use the term.</li>
+              (possibly in another language). Requirements and the user manual quote it ("Renew loan"); everywhere else, use the term.</li>
             <li><strong>Code names should match.</strong> If the code name differs from the term, rename it when you
               touch the code. The code links to the term (<code>terms.html#loan-period</code>), not the other way
               round: terms don't list code names, which change more often than the terms.</li>
@@ -134,7 +134,7 @@
           </ul>
           <h3 class="h6">How to maintain them</h3>
           <ul>
-            <li>Keep the terms current as part of normal work: the story, spec or merge request that introduces,
+            <li>Keep the terms current as part of normal work: the story, requirements file or merge request that introduces,
               changes or retires a concept updates the terms in the same change.</li>
             <li>When a requirements document defines a term other stories will need, move it here and link it.</li>
             <li>Don't delete terms that were in use; retire them with what replaced them, so old tickets stay readable.</li>

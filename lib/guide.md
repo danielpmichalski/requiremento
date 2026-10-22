@@ -1,31 +1,31 @@
 # requiremento: guide for AI agents
 
 This project keeps its requirements as JSON files that you edit directly: one **terms file** (the shared vocabulary)
-and one **spec file** per ticket. `requiremento.json` says where they are. Run `requiremento check` after every edit.
+and one **requirements file** per ticket. `requiremento.json` says where they are. Run `requiremento check` after every edit.
 
-Get the exact shape of a file with `requiremento schema specs` or `requiremento schema terms` (JSON Schema). The checker covers
+Get the exact shape of a file with `requiremento schema requirements` or `requiremento schema terms` (JSON Schema). The checker covers
 what a schema can't, so the schema alone is not enough.
 
 ## Workflow
 
-1. Read `requiremento.json`, then the terms file, then the spec you work on. Use the words of the terms file.
+1. Read `requiremento.json`, then the terms file, then the requirements file you work on. Use the words of the terms file.
 2. Edit the JSON. Keep the key order and the 2-space indent of the file (a hand edit that changes them only warns).
 3. Append a changelog entry for every change: `{ "date": "YYYY-MM-DD", "author": "<git user.name>", "action": "...", "ref": "<ID or empty>", "summary": "<one line>" }`.
-   Changelogs are append-only, oldest first. Spec actions: `added`, `changed`, `withdrawn`, `deleted`, `decision`.
+   Changelogs are append-only, oldest first. Requirements actions: `added`, `changed`, `withdrawn`, `deleted`, `decision`.
    Terms actions: `added`, `changed`, `retired`, `deleted`, `question`.
 4. Run `requiremento check`. Fix every error. Fix warnings too unless you know why they are there.
 
-New spec: `requiremento new <KEY> "<title>"` (creates `<specs folder>/<KEY>.json`).
+New requirements file: `requiremento new <KEY> "<title>"` (creates `<requirements folder>/<KEY>.json`).
 
 ## Rules you must follow
 
 - **IDs are forever.** Never rename or reuse an ID. To remove an item, delete it and add its ID (or a range
   `EX-LOAN-90..EX-LOAN-92`) to `withdrawn` with a reason. Texts may still mention a withdrawn ID.
 - **Every rule has at least one example, and every example is listed by at least one acceptance criterion (AC).**
-- **Mentions are checked.** Any text that mentions a spec ID or a reference data ID that does not exist fails the check,
+- **Mentions are checked.** Any text that mentions an item ID or a reference data ID that does not exist fails the check,
   also in prose, scenarios and test steps.
 - **Use `[[term-id]]` to link a term** (never `[[id|label]]`). Do not use a word listed in a term's `avoid`.
-- **Reference data IDs** (`MEM-1`, `LN-4`) must not use a prefix that spec IDs use (`AC-`, `RULE-...`, `EX-...`).
+- **Reference data IDs** (`MEM-1`, `LN-4`) must not use a prefix that item IDs use (`AC-`, `RULE-...`, `EX-...`).
   Items of one data kind share a prefix.
 - **Do not invent requirements.** Where the meaning is unclear, add a question (`questions`) instead of a rule.
 
@@ -42,7 +42,7 @@ Keys: `groups`, `terms`, `questions`, `changelog`. Sorted: groups by title, term
 `id` is a lowercase slug and never changes. `status` is `active` or `retired`; a retired term needs `replacedBy`.
 A question has `id` (`Q-01`), `title`, `status` (`open` or `resolved`), `terms`, `text`, and a `resolution` once resolved.
 
-## Spec file
+## Requirements file
 
 Top-level keys, in this order: `meta`, `sections`, `terms`, `dataKinds`, `data`, `stories`, `ruleGroups`, `rules`,
 `examples`, `acceptanceCriteria`, `testCases`, `limitations`, `assumptions`, `risks`, `questions`, `decisions`,
@@ -65,13 +65,13 @@ Top-level keys, in this order: `meta`, `sections`, `terms`, `dataKinds`, `data`,
 | reference data kind | lowercase slug | `{ id, label, title, columns[], derived[] }` |
 | reference data item | `MEM-1`, `LN-4` | `{ id, kind, values{ column: text } }`, optional `"testOnly": true` |
 
-Spec item ID pattern: `^[A-Z]+(-[A-Z]+)*-[0-9]+[a-z]?$`. `AC-02a` is an AC inserted after `AC-02`.
+Item ID pattern: `^[A-Z]+(-[A-Z]+)*-[0-9]+[a-z]?$`. `AC-02a` is an AC inserted after `AC-02`.
 
 - AC `status`: `draft`, `pending`, `implemented`, `known-limitation`, `target`. Test case `status`: `draft`, `ready`,
   `passed`, `failed`, `blocked`.
 - Every `scenarios` entry is Gherkin and starts with `Scenario:` or `Scenario Outline:`. An AC needs scenarios or a
   `description`.
-- `terms` lists the term ids the spec relies on. Definitions live only in the terms file.
+- `terms` lists the term ids the file relies on. Definitions live only in the terms file.
 - `sections` is the page in order: `{ id, title, body (Markdown), list? }`. A non-empty list that no section shows warns.
 - All text fields are Markdown. IDs and `[[term-id]]` in text become links.
 

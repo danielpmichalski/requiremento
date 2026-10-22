@@ -1,5 +1,5 @@
 {
-  "$schema": "../../../schemas/specs.schema.json",
+  "$schema": "../../../schemas/requirements.schema.json",
   "meta": {
     "key": "LIB-101",
     "title": "Renew a loan online",
@@ -41,7 +41,7 @@
     {
       "id": "terms",
       "title": "3. Terms",
-      "body": "The terms are defined once, in the shared terms file, and linked from here. The list shows the terms this specification relies on.",
+      "body": "The terms are defined once, in the shared terms file, and linked from here. The list shows the terms this file relies on.",
       "list": "terms"
     },
     {

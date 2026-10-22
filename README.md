@@ -11,7 +11,7 @@ You keep two kinds of files in your repository:
 | File | What it holds | Viewer / editor |
 |---|---|---|
 | `terms/terms.json` | The **terms** of your domain: one shared vocabulary, defined once | `terms.html` |
-| `specs/<TICKET>.json` | One **specification per ticket**: stories, business rules, concrete examples, acceptance criteria (Gherkin), test cases, risks, decisions | `specs.html` |
+| `requirements/<TICKET>.json` | One **requirements file per ticket**: stories, business rules, concrete examples, acceptance criteria (Gherkin), test cases, risks, decisions | `requirements.html` |
 
 **requiremento** is the tool around them: a command line, two single-file HTML pages to read and edit the files, and the
 checks. It is an npm package without dependencies. The tool and your data are separate: the tool is installed at a
@@ -32,7 +32,7 @@ feature.
 - [Commands](#commands)
 - [Your project](#your-project)
 - [The terms file](#the-terms-file)
-- [The specification file](#the-specification-file)
+- [The requirements file](#the-requirements-file)
 - [IDs](#ids)
 - [Links and Markdown](#links-and-markdown)
 - [Checks](#checks)
@@ -54,7 +54,7 @@ means three things. This toolkit pushes against that with a few simple ideas:
    Examples use named reference data (`MEM-1`, `LN-4`), so everybody discusses the same case.
 2. **Examples drive acceptance criteria and tests.** Each acceptance criterion points to the rules and examples it
    makes testable, and each test case points to the criteria it covers. Traceability is generated, not maintained.
-3. **One vocabulary.** Terms are defined once and linked (`[[loan-period]]`) from specs. Retired terms warn,
+3. **One vocabulary.** Terms are defined once and linked (`[[loan-period]]`) from requirements files. Retired terms warn,
    forbidden synonyms are recorded.
 4. **IDs are forever.** Tests, tickets and reviews refer to IDs, so an ID is never renamed or reused. It is withdrawn.
 5. **Plain files.** JSON in git, one stable key order, so every change shows up as a small diff.
@@ -63,14 +63,14 @@ means three things. This toolkit pushes against that with a few simple ideas:
 
 `requiremento serve` shows your JSON files as readable pages. The pages are also the editor.
 
-**A specification** with its overview, the table of contents and a status filter for the acceptance criteria:
+**A requirements file** with its overview, the table of contents and a status filter for the acceptance criteria:
 
-![A specification page: counts of stories, rules, examples and acceptance criteria, and the table of contents](docs/images/specs-overview.png)
+![A requirements page: counts of stories, rules, examples and acceptance criteria, and the table of contents](docs/images/requirements-overview.png)
 
 **Search and reference data.** Every mention of a reference data item (`LN-4`, `MEM-2`) or a term links to its item. The
-search highlights matches across the whole spec:
+search highlights matches across the whole file:
 
-![The search for "overdue" highlighting matches in the reference data and in the rules](docs/images/specs-reference-data.png)
+![The search for "overdue" highlighting matches in the reference data and in the rules](docs/images/requirements-reference-data.png)
 
 **The terms** of the domain, defined once. The words to avoid are listed next to each definition:
 
@@ -84,11 +84,11 @@ should live, usually the root of your repository:
 ```bash
 npm install --save-dev requiremento@0.1.0   # pin the version you want
 npx requiremento init                       # creates requiremento.json and an empty terms file; asks about AGENTS.md / CLAUDE.md
-npx requiremento new SHOP-42 "Checkout"     # creates an empty spec for a ticket
+npx requiremento new SHOP-42 "Checkout"     # creates an empty requirements file for a ticket
 npx requiremento serve                      # shows the pages at http://localhost:8000
 ```
 
-Open `http://localhost:8000`, pick the terms or the spec, and start writing. Every change in the pages adds a
+Open `http://localhost:8000`, pick the terms or a requirements file, and start writing. Every change in the pages adds a
 changelog entry. Commit the JSON files like any other source.
 
 No `package.json` (for example in a Gradle or Maven project)? Use `npx requiremento@0.1.0 <command>` instead. It needs only
@@ -101,11 +101,11 @@ The pages load Bootstrap from a CDN, so you need to be online for the styling th
 | Command | What it does |
 |---|---|
 | `requiremento init [--agents agents\|claude\|both\|none]` | Creates `requiremento.json` and an empty terms file. Existing files are kept. It also asks whether to add a short section for AI agents to `AGENTS.md`, `CLAUDE.md` or both (see [Editing](#editing-people-scripts-and-ai-agents)). The flag answers the question up front; without a terminal and without the flag, nothing is added. |
-| `requiremento new <KEY> ["title"]` | Creates an empty spec file for a ticket, for example `SHOP-42`. |
-| `requiremento check [spec.json ...]` | Checks the terms file and the given spec files (default: all of them). Exit code 1 on errors, so it works as a CI step. See [Checks](#checks). |
+| `requiremento new <KEY> ["title"]` | Creates an empty requirements file for a ticket, for example `SHOP-42`. |
+| `requiremento check [file.json ...]` | Checks the terms file and the given requirements files (default: all of them). Exit code 1 on errors, so it works as a CI step. See [Checks](#checks). |
 | `requiremento serve [--port 8000]` | Starts a local web server that shows the pages on your files. Press Ctrl+C to stop. |
 | `requiremento guide` | Prints the guide for AI agents: the file formats, the ID rules and the workflow. See [Editing](#editing-people-scripts-and-ai-agents). |
-| `requiremento schema <specs\|terms>` | Prints the JSON Schema of a spec or the terms file. |
+| `requiremento schema <requirements\|terms>` | Prints the JSON Schema of a requirements file or the terms file. |
 | `requiremento --version`, `requiremento --help` | |
 
 `requiremento serve` only reads your files. *Save* in the pages writes into the file with the File System Access API (Chrome
@@ -118,9 +118,9 @@ The tool adds no files to your project except the config. This is all of it:
 
 ```
 your-project/
-  requiremento.json            { "terms": "terms/terms.json", "specs": "specs" }
+  requiremento.json            { "terms": "terms/terms.json", "requirements": "requirements" }
   terms/terms.json
-  specs/SHOP-42.json
+  requirements/SHOP-42.json
 ```
 
 ### The config file
@@ -131,10 +131,10 @@ optional; the values below are the defaults. Paths are relative to the config fi
 | Key | Meaning | Default |
 |---|---|---|
 | `terms` | The terms file | `terms/terms.json` |
-| `specs` | The folder with the spec files (every `.json` file there that uses the specs schema) | `specs` |
+| `requirements` | The folder with the requirements files (every `.json` file there that uses the requirements schema) | `requirements` |
 
 To keep the requirements elsewhere, change the config and move the files, for example
-`{ "terms": "docs/terms.json", "specs": "docs/requirements" }`. Without a `requiremento.json`, the defaults apply relative to
+`{ "terms": "docs/terms.json", "requirements": "docs/requirements" }`. Without a `requiremento.json`, the defaults apply relative to
 the current folder.
 
 ## The terms file
@@ -163,7 +163,7 @@ A term:
 ```
 
 - `id` is a lowercase slug and a stable anchor (`terms.html#loan-period`). Never change it.
-- `term` is the word to use in specs, tests and code.
+- `term` is the word to use in requirements, tests and code.
 - `uiLabel` is what the user sees, if that differs from the term (for example because the UI is in another language).
 - `avoid` lists synonyms that must not be used, with an optional reason.
 - `status` is `active` or `retired`. A retired term needs `replacedBy` (a term id or free text) and may have `retiredSince`.
@@ -172,16 +172,16 @@ A term:
 **Questions** capture undecided meaning, so it doesn't leak into a definition. A question lists the terms it concerns
 and is `open` until it has a `resolution`.
 
-## The specification file
+## The requirements file
 
-One file per ticket. The key order is fixed and the file ends with a newline; `specs.html` writes it in exactly that
+One file per ticket. The key order is fixed and the file ends with a newline; `requirements.html` writes it in exactly that
 format. Top-level keys:
 
 | Key | Content |
 |---|---|
 | `meta` | Ticket key, titles, version, date, approval, related documents, `precedence` statement |
 | `sections` | The page, in order: Markdown text and an optional generated list (`"list": "rules"`, `"data"`, ...) |
-| `terms` | Ids of the terms the spec relies on (definitions live only in the terms file) |
+| `terms` | Ids of the terms the file relies on (definitions live only in the terms file) |
 | `dataKinds`, `data` | **Reference data** that examples and tests use: kinds with columns, and the items |
 | `stories` | User stories (`US-...`) with a readiness note |
 | `ruleGroups`, `rules` | Business rules (`RULE-...`), grouped under a story |
@@ -270,13 +270,13 @@ IDs are stable. Never change or reuse one; **withdraw** it (it moves to `withdra
 
 | Item | Pattern | Examples |
 |---|---|---|
-| Spec items (stories, rules, examples, ACs, test cases, limitations, assumptions, risks, questions) | `^[A-Z]+(-[A-Z]+)*-[0-9]+[a-z]?$` | `AC-01`, `AC-02a`, `RULE-LOAN-03`, `EX-LOAN-12`, `TC-04`, `KL-01`, `Q-LOAN-02` |
+| Items of a requirements file (stories, rules, examples, ACs, test cases, limitations, assumptions, risks, questions) | `^[A-Z]+(-[A-Z]+)*-[0-9]+[a-z]?$` | `AC-01`, `AC-02a`, `RULE-LOAN-03`, `EX-LOAN-12`, `TC-04`, `KL-01`, `Q-LOAN-02` |
 | Reference data | `^[A-Z][A-Z0-9]*(-[A-Za-z0-9]+)*$` | `MEM-1`, `LN-4`, `CP-3a1` |
 | Terms, sections, data kinds | lowercase slug | `loan-period`, `reference-data` |
 | Rule groups | free text | `6.1` |
 
 - An area part such as `LOAN` is optional and up to you. `AC-02a` is the convention for an AC inserted after `AC-02`.
-- A reference data ID must not look like a spec ID. Keep different prefixes (`LN-`, not `AC-`).
+- A reference data ID must not look like an item ID. Keep different prefixes (`LN-`, not `AC-`).
 - Items of one data kind should share a prefix, so the checker can spot unknown mentions.
 - In `withdrawn`, a range can be written as `EX-LOAN-90..EX-LOAN-92`.
 
@@ -287,11 +287,11 @@ and `` `code` ``.
 
 Automatic links:
 
-- IDs of the spec (`AC-02`, `RULE-LOAN-03`) and of reference data (`LN-4`) link to their item, wherever they appear.
-- `[[term-id]]` links a term and shows its current name. Rename a term and every spec shows the new name.
+- IDs of the items (`AC-02`, `RULE-LOAN-03`) and of reference data (`LN-4`) link to their item, wherever they appear.
+- `[[term-id]]` links a term and shows its current name. Rename a term and every requirements file shows the new name.
 - Anything in Gherkin scenarios is linked too. *Copy Gherkin* on an AC copies its scenarios as a `.feature` file.
 
-Permalinks: `specs.html#AC-02a` opens an item, `specs.html#LN-4` a data item, `terms.html#loan-period` a term.
+Permalinks: `requirements.html#AC-02a` opens an item, `requirements.html#LN-4` a data item, `terms.html#loan-period` a term.
 
 ## Checks
 
@@ -299,8 +299,8 @@ The JSON Schema describes shape. `requiremento check` covers what a schema can't
 any hand or script edit. The pages run the same checks before they save.
 
 ```bash
-npx requiremento check                       # the terms file and every spec file named by requiremento.json
-npx requiremento check specs/SHOP-42.json    # only the given spec files (the terms file is still used)
+npx requiremento check                       # the terms file and every requirements file named by requiremento.json
+npx requiremento check requirements/SHOP-42.json    # only the given requirements files (the terms file is still used)
 ```
 
 Exit code 1 on errors.
@@ -314,26 +314,26 @@ Exit code 1 on errors.
 - resolved question without a resolution
 - groups or terms out of order, bad changelog dates
 
-**Specs: errors**
+**Requirements files: errors**
 
 - duplicate IDs, malformed IDs, reuse of a withdrawn ID
 - broken references (an example's rule, an AC's story, a test case's AC, ...)
 - a rule without an example, an example no AC uses
 - an AC with neither scenarios nor a description, scenarios not starting with `Scenario:` or `Scenario Outline:`
-- mentions of unknown spec IDs or unknown data items in any text
+- mentions of unknown item IDs or unknown data items in any text
 - invalid risk ratings, resolved question without a resolution, bad dates, unknown section lists or data kinds
 
-**Specs: warnings** (do not fail)
+**Requirements files: warnings** (do not fail)
 
 - a story without ACs, an unused data item, an AC using an example of a rule it does not list
 - terms that are missing in the terms file or retired
 - a list with items but no section that shows it
-- the file is not in the format `specs.html` writes (the next save from the page reformats it)
+- the file is not in the format `requirements.html` writes (the next save from the page reformats it)
 
 The schemas ship with the package. Validate against them with any JSON Schema 2020-12 validator, for example:
 
 ```bash
-npx ajv-cli@5 validate --spec=draft2020 -s node_modules/requiremento/schemas/specs.schema.json -d specs/SHOP-42.json
+npx ajv-cli@5 validate --spec=draft2020 -s node_modules/requiremento/schemas/requirements.schema.json -d requirements/SHOP-42.json
 npx ajv-cli@5 validate --spec=draft2020 -s node_modules/requiremento/schemas/terms.schema.json -d terms/terms.json
 ```
 
@@ -346,30 +346,30 @@ npx ajv-cli@5 validate --spec=draft2020 -s node_modules/requiremento/schemas/ter
   decline. The section is about five lines between `<!-- requiremento:start -->` and `<!-- requiremento:end -->`, appended to the
   file if it exists. It tells the agent to run `requiremento guide` before it touches the files and `requiremento check` after.
   Running `init` again updates only the text between the markers, and you can delete the section any time.
-  The guide is part of the installed version, so it always matches the format. `requiremento schema specs` and
+  The guide is part of the installed version, so it always matches the format. `requiremento schema requirements` and
   `requiremento schema terms` print the schemas, so an agent doesn't have to find them in `node_modules`.
 - **Scripts and AI agents** edit the JSON directly, **append a changelog entry themselves**, and run `requiremento check`.
-  Keep IDs stable and withdraw instead of deleting. If you write specs with `requiremento/lib/specs-lib.js`, its `serialize(spec)`
+  Keep IDs stable and withdraw instead of deleting. If you write requirements files with `requiremento/lib/requirements-lib.js`, its `serialize(requirements)`
   produces the exact key order and formatting the page uses, so diffs stay minimal:
 
   ```js
-  const { check, serialize } = require('requiremento/lib/specs-lib.js');
-  const { errors, warnings } = check(spec, terms);
-  fs.writeFileSync('specs/SHOP-42.json', serialize(spec));
+  const { check, serialize } = require('requiremento/lib/requirements-lib.js');
+  const { errors, warnings } = check(requirements, terms);
+  fs.writeFileSync('requirements/SHOP-42.json', serialize(requirements));
   ```
 
 - The changelog is append-only. Actions in the terms file: `added`, `changed`, `retired`, `deleted`, `question`.
-  Actions in a spec: `added`, `changed`, `withdrawn`, `deleted`, `decision`.
+  Actions in a requirements file: `added`, `changed`, `withdrawn`, `deleted`, `decision`.
 
 ## Rolling it out in a team
 
 1. Install a pinned version and run `requiremento init` (see [Getting started](#getting-started)).
 2. Start with the terms. Writing down five terms and their forbidden synonyms resolves more arguments than a dozen
    documents.
-3. Create a spec per ticket with `requiremento new`. The file is named after the ticket key (`meta.key`). For a full spec to
-   read, see `examples/library/specs/LIB-101.json` in the requiremento repository.
+3. Create a requirements file per ticket with `requiremento new`. The file is named after the ticket key (`meta.key`). For a full example to
+   read, see `examples/library/requirements/LIB-101.json` in the requiremento repository.
 4. Add `npx requiremento check` to CI.
-5. Decide on conventions: the area part of the IDs, who may set a spec to `implemented`, and whether the product owner
+5. Decide on conventions: the area part of the IDs, who may set an item to `implemented`, and whether the product owner
    approves in `meta.approvedBy` and `meta.approvedOn`.
 
 ## Upgrading
