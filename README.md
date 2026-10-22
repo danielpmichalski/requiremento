@@ -83,7 +83,7 @@ should live, usually the root of your repository:
 
 ```bash
 npm install --save-dev specky@0.1.0   # pin the version you want
-npx specky init                       # creates specky.json and an empty terms file
+npx specky init                       # creates specky.json and an empty terms file; asks about AGENTS.md / CLAUDE.md
 npx specky new SHOP-42 "Checkout"     # creates an empty spec for a ticket
 npx specky serve                      # shows the pages at http://localhost:8000
 ```
@@ -100,10 +100,12 @@ The pages load Bootstrap from a CDN, so you need to be online for the styling th
 
 | Command | What it does |
 |---|---|
-| `specky init` | Creates `specky.json` and an empty terms file. Existing files are kept. |
+| `specky init [--agents agents\|claude\|both\|none]` | Creates `specky.json` and an empty terms file. Existing files are kept. It also asks whether to add a short section for AI agents to `AGENTS.md`, `CLAUDE.md` or both (see [Editing](#editing-people-scripts-and-ai-agents)). The flag answers the question up front; without a terminal and without the flag, nothing is added. |
 | `specky new <KEY> ["title"]` | Creates an empty spec file for a ticket, for example `SHOP-42`. |
 | `specky check [spec.json ...]` | Checks the terms file and the given spec files (default: all of them). Exit code 1 on errors, so it works as a CI step. See [Checks](#checks). |
 | `specky serve [--port 8000]` | Starts a local web server that shows the pages on your files. Press Ctrl+C to stop. |
+| `specky guide` | Prints the guide for AI agents: the file formats, the ID rules and the workflow. See [Editing](#editing-people-scripts-and-ai-agents). |
+| `specky schema <specs\|terms>` | Prints the JSON Schema of a spec or the terms file. |
 | `specky --version`, `specky --help` | |
 
 `specky serve` only reads your files. *Save* in the pages writes into the file with the File System Access API (Chrome
@@ -339,6 +341,13 @@ npx ajv-cli@5 validate --spec=draft2020 -s node_modules/specky/schemas/terms.sch
 
 - **People** use the pages. Every change adds a changelog entry with the author's name (asked once and remembered),
   and repeated unsaved edits of the same item are merged into one entry.
+- **AI agents** edit the JSON directly. `specky init` asks whether to add a short section to `AGENTS.md` (read by
+  Codex, Cursor, Copilot and others), to `CLAUDE.md` (read by Claude Code), or to both. It never touches a file you
+  decline. The section is about five lines between `<!-- specky:start -->` and `<!-- specky:end -->`, appended to the
+  file if it exists. It tells the agent to run `specky guide` before it touches the files and `specky check` after.
+  Running `init` again updates only the text between the markers, and you can delete the section any time.
+  The guide is part of the installed version, so it always matches the format. `specky schema specs` and
+  `specky schema terms` print the schemas, so an agent doesn't have to find them in `node_modules`.
 - **Scripts and AI agents** edit the JSON directly, **append a changelog entry themselves**, and run `specky check`.
   Keep IDs stable and withdraw instead of deleting. If you write specs with `specky/lib/specs-lib.js`, its `serialize(spec)`
   produces the exact key order and formatting the page uses, so diffs stay minimal:

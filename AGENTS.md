@@ -15,8 +15,8 @@ repository.
 
 ```
 package.json   name, version, bin, files (bin, lib, pages, schemas)
-bin/           specky.mjs (CLI: init, new, check, serve)
-lib/           config.mjs, check.mjs, check-terms.mjs, serve.mjs, init.mjs, specs-lib.js
+bin/           specky.mjs (CLI: init, new, check, serve, guide, schema)
+lib/           config.mjs, check.mjs, check-terms.mjs, serve.mjs, init.mjs, agent.mjs, specs-lib.js, guide.md
 pages/         terms.html, specs.html (viewers/editors)
 schemas/       terms.schema.json, specs.schema.json
 examples/library/   specky.json, terms/terms.json, specs/LIB-101.json (example project, not part of the package)
@@ -30,6 +30,8 @@ examples/library/   specky.json, terms/terms.json, specs/LIB-101.json (example p
 - `schemas/specs.schema.json` and `schemas/terms.schema.json` describe the shape. The checkers cover what a schema can't.
   A change to a field touches the schema, `ORDER`/`TEXT_FIELDS`/`REF_FIELDS` in `specs-lib.js`, the form definitions in
   `pages/specs.html`, and the README, together.
+- `lib/guide.md` is what `specky guide` prints for agents in client projects. It restates the format and rules, so a
+  change to a field or a rule touches it too. Keep it short and accurate.
 - Tool code finds data only through `lib/config.mjs` (`specky.json`). Never hard-code a data path in `lib/` or `bin/`.
 - `specky serve` maps the pages and the data onto one flat URL space (`/specs.html`, `/terms.json`, `/<SPEC>.json`), so
   the pages fetch `terms.json` and `?spec=NAME.json` relative to themselves. Keep that in step with `lib/serve.mjs`.
