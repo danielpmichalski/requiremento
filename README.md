@@ -2,6 +2,11 @@
 
 # Requiremento
 
+[![npm version](https://img.shields.io/npm/v/requiremento.svg)](https://www.npmjs.com/package/requiremento)
+[![npm downloads](https://img.shields.io/npm/dm/requiremento.svg)](https://www.npmjs.com/package/requiremento)
+[![node](https://img.shields.io/node/v/requiremento.svg)](https://nodejs.org)
+[![license](https://img.shields.io/npm/l/requiremento.svg)](LICENSE)
+
 A small, dependency-free toolkit for writing **living requirements** as plain JSON files, in the spirit of
 [Specification by Example](https://gojko.net/books/specification-by-example/) and Domain-Driven Design's
 *ubiquitous language*.
@@ -82,7 +87,7 @@ You need Node 18 or newer, and Chrome or Edge to edit comfortably. Run this in t
 should live, usually the root of your repository:
 
 ```bash
-npm install --save-dev requiremento@0.1.0   # pin the version you want
+npm install --save-dev requiremento@1.0.0   # pin the version you want
 npx requiremento init                       # creates requiremento.json and an empty terms file; asks about AGENTS.md / CLAUDE.md
 npx requiremento new SHOP-42 "Checkout"     # creates an empty requirements file for a ticket
 npx requiremento serve                      # shows the pages at http://localhost:8000
@@ -91,7 +96,7 @@ npx requiremento serve                      # shows the pages at http://localhos
 Open `http://localhost:8000`, pick the terms or a requirements file, and start writing. Every change in the pages adds a
 changelog entry. Commit the JSON files like any other source.
 
-No `package.json` (for example in a Gradle or Maven project)? Use `npx requiremento@0.1.0 <command>` instead. It needs only
+No `package.json` (for example in a Gradle or Maven project)? Use `npx requiremento@1.0.0 <command>` instead. It needs only
 Node, and the version in the command is the version you get.
 
 The pages load Bootstrap from a CDN, so you need to be online for the styling the first time.
